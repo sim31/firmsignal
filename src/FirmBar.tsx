@@ -37,6 +37,7 @@ const StyledSelect = styled(Select)(({ theme }) => ({
   '& > div': {
     padding: theme.spacing(1.2, 1, 1.2, 1.5),
     borderRadius: theme.shape.borderRadius,
+    border: 0,
     backgroundColor: alpha(theme.palette.common.white, 0.15),
     // '&:hover': {
     //   backgroundColor: alpha(theme.palette.common.white, 0.25),
@@ -105,14 +106,15 @@ const addr3 = '0xb3a3762db7ce0544b58569d5bd35a4b9284a6e96';
 
 
 export default function FirmBar() {
-  const [selectedChain, setSelectedChain] = React.useState<string>('None');
+  const [selectedChain, setSelectedChain] = React.useState<string>(addr1);
 
   const onSelectChain = React.useCallback((e: SelectChangeEvent<unknown>) => {
     setSelectedChain(e.target.value as string);
   }, [setSelectedChain]);
 
   const renderSelection = (value: unknown) => {
-    const text = value === 'None' ? 'Select chain' : value as string;
+    // const text = value === 'None' ? 'Select chain' : value as string;
+    const text = value === 'new' ? 'New chain' : value as string;
     return <StyledAddr>{text}</StyledAddr>
   }
 
@@ -135,10 +137,11 @@ export default function FirmBar() {
             onChange={onSelectChain}
             renderValue={renderSelection}
           >
-            <MenuItem value="None">Select chain</MenuItem>
+            {/* <MenuItem value="None">Select chain</MenuItem> */}
             <MenuItem value={addr1}>{addr1}</MenuItem>
             <MenuItem value={addr2}>{addr2}</MenuItem>
             <MenuItem value={addr3}>{addr3}</MenuItem>
+            <MenuItem value={'new'}>New chain</MenuItem>
           </StyledSelect>
 
           <Typography

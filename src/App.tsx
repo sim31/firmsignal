@@ -1,13 +1,19 @@
 import React from 'react';
 import logo from './logo.svg';
-import './App.css';
 import FirmBar from './FirmBar';
+import { CssBaseline } from '@mui/material';
+import CreateChain from './CreateChain';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+
+const theme = createTheme();
 
 function App() {
   return (
-    <div className="App">
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
       <FirmBar />
-    </div>
+      <CreateChain />
+    </ThemeProvider>
   );
 }
 
