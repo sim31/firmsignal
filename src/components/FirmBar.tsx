@@ -8,6 +8,7 @@ import InputBase from '@mui/material/InputBase';
 import MenuItem from '@mui/material/MenuItem';
 import { css, Select } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material';
+import { customTextWidthCss } from '../helpers/hashDisplay';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -52,18 +53,7 @@ const StyledSelect = styled(Select)(({ theme }) => ({
 }));
 
 
-const SHORTENED_ADDR_WIDTH = '6em';
-
-const customTextWidth = (width = SHORTENED_ADDR_WIDTH) => {
-  return css({
-    width: '100%',
-    maxWidth: width,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  })
-}
-
-const ShortenedAddr = styled('div')(customTextWidth());
+const ShortenedAddr = styled('div')(customTextWidthCss());
 
 const StyledAddr = styled(ShortenedAddr)(({ theme }) => ({
   '&:hover': {
@@ -127,6 +117,10 @@ export default function FirmBar() {
             component="div"
             sx={{ 
               marginRight: '1em', 
+              display: {
+                md: 'block',
+                xs: 'none',
+              }
             }}
           >
             FirmSignal

@@ -35,12 +35,12 @@ export default function CreateChain() {
     setScType((event.target as HTMLInputElement).value);
   };
 
-  function renderConfirmers() {
+  // function renderConfirmers() {
     
-  }
+  // }
 
   return (
-    <Container component="main" maxWidth="sm" sx={{ mb: 4 }}>
+    <Container component="main" maxWidth="md" sx={{ mb: 4 }}>
       <Paper elevation={8} sx={{ my: { xs: 3, md: 6 }, p: { xs: 2, md: 3 } }}>
         <Typography component="h1" variant="h4" align="center">
           Create a new chain
@@ -53,8 +53,8 @@ export default function CreateChain() {
             required
             id="name"
             label="Name"
-            fullWidth
             variant="standard"
+            sx={{ maxWidth: '14em' }}
           />
           <FormControl>
             <FormLabel>
@@ -87,7 +87,13 @@ export default function CreateChain() {
             </IconButton>
             <TextField
               required
-              label="Confirmer 1 address"
+              label="Name"
+              variant="standard"
+              sx={{ width: '14em' }}
+            />
+            <TextField
+              required
+              label="Address"
               variant="standard"
               fullWidth
             />
@@ -106,7 +112,13 @@ export default function CreateChain() {
             </IconButton>
             <TextField
               required
-              label="Confirmer 2 address"
+              label="Name"
+              variant="standard"
+              sx={{ width: '14em' }}
+            />
+            <TextField
+              required
+              label="Address"
               variant="standard"
               fullWidth
             />

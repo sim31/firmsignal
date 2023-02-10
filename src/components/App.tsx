@@ -4,6 +4,9 @@ import FirmBar from './FirmBar';
 import { CssBaseline } from '@mui/material';
 import CreateChain from './CreateChain';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import FirmState from './FirmState';
+import { FirmChain } from './FirmChain';
+import FirmHistory from './FirmHistory';
 
 const theme = createTheme();
 
@@ -12,7 +15,8 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <FirmBar />
-      <CreateChain />
+      {/* <CreateChain /> */}
+      <FirmChain />
     </ThemeProvider>
   );
 }
