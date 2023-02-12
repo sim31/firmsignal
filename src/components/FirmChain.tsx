@@ -1,6 +1,7 @@
 import { Box, Container, Tab, Tabs, Typography } from '@mui/material';
 import * as React from 'react';
 import FirmHistory from './FirmHistory';
+import FirmProposals from './FirmProposals';
 import FirmState from './FirmState';
 
 export function FirmChain() {
@@ -27,9 +28,10 @@ export function FirmChain() {
           <Tab label="Propose 2" value="createProp" /> */}
         </Tabs>
       </Box>
-      <Container component="main" maxWidth="xl" sx={{ mb: '4em' }}>
+      <Container component="main" maxWidth="xl" sx={{ mb: '4em', ml: '2em' }}>
         {/* <FirmState /> */}
-        <FirmHistory />
+        {/* <FirmHistory /> */}
+        <FirmProposals />
       </Container>
     </>
   );

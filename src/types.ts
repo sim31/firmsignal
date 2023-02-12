@@ -9,8 +9,8 @@ export type BlockTags = [BlockStatus, 'view'] | [BlockStatus];
 
 export function blockTagsStr(tags: BlockTags): string {
   if (tags[1]) {
-    return `${tags[0]} ${tags[1]}`;
+    return `block ${tags[0]} ${tags[1]}`;
   } else {
-    return tags[0];
+    return `block ${tags[0]}`;
   }
 }
