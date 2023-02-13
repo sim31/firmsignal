@@ -9,6 +9,7 @@ import { customTextWidthCss } from '../helpers/hashDisplay';
 import { styled } from '@mui/material/styles';
 import { Stack } from '@mui/material';
 import { BlockTags, blockTagsStr } from '../types';
+import ShortenedBlockId from './ShortenedBlockId';
 
 export type BlockCardProps = {
   num: number;
@@ -20,8 +21,6 @@ export type BlockCardProps = {
   totalWeight: number;
   confirmed?: boolean;
 }
-
-const ShortenedBlockId = styled(Typography)(customTextWidthCss('6em'));
 
 // Number
 // Id

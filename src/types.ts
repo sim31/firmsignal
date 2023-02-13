@@ -14,3 +14,15 @@ export function blockTagsStr(tags: BlockTags): string {
     return `block ${tags[0]}`;
   }
 }
+
+export type ActionStatus =
+  | 'finalized'
+  | 'proposed';
+
+export function actionTagsStr(actionStatus: ActionStatus) {
+  return `action ${actionStatus}`;
+}
+
+export function actionHeaderStr(actionId: string, actionStatus: ActionStatus) {
+  return `#${actionId} ${actionTagsStr(actionStatus)}`;
+}
