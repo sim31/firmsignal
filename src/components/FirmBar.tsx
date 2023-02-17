@@ -9,6 +9,11 @@ import MenuItem from '@mui/material/MenuItem';
 import { css, Select } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material';
 import { customTextWidthCss } from '../helpers/hashDisplay';
+import { useRouteMatcher } from '../global/hooks';
+import { rootRouteMatcher } from '../global/routes';
+import { selectChainsByAddress } from '../global/slices/chains';
+import { useAppSelector, useAppDispatch, } from '../global/hooks';
+import { setLocation } from '../global/slices/appLocation';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -89,22 +94,55 @@ const StyledAddr = styled(ShortenedAddr)(({ theme }) => ({
 // }
 
 
-
-const addr1 = '0x199d5ed7f45f4ee35960cf22eade2076e95b253f';
-const addr2 = '0x2e08451b79a01cda253811e45719ceb42640c20d';
-const addr3 = '0xb3a3762db7ce0544b58569d5bd35a4b9284a6e96';
-
-
 export default function FirmBar() {
-  const [selectedChain, setSelectedChain] = React.useState<string>(addr1);
+  const routeMatch = useRouteMatcher(rootRouteMatcher);
+  const chainsByAddr = useAppSelector(selectChainsByAddress);
+  const dispatch = useAppDispatch();
 
-  const onSelectChain = React.useCallback((e: SelectChangeEvent<unknown>) => {
-    setSelectedChain(e.target.value as string);
-  }, [setSelectedChain]);
+  // TODO: Redirect to default chain or something else if non existing chain id
+  // TODO: Move this to App. This should be controlled through props I think
+  const value = React.useMemo(() => {
+    if (!routeMatch.value) {
+      return '';
+    } else if (routeMatch.value.name === 'CreateChain') {
+      return 'newChain';
+    } else if (routeMatch.value.name === 'FirmChain') {
+      if (routeMatch.params && Object.keys(routeMatch.params).includes('chainId')) {
+        const address = routeMatch.params['chainId'];
+        if (Object.keys(chainsByAddr).includes(address)) {
+          return address;
+        } else {
+          return '';
+        }
+      }
+    } else {
+      return '';
+    }
+  }, [routeMatch, chainsByAddr]);
 
-  const renderSelection = (value: unknown) => {
+  const handleSelectChain = React.useCallback((e: SelectChangeEvent<unknown>) => {
+    dispatch(setLocation(e.target.value as string));
+  }, [dispatch]);
+
+  function renderMenuItems() {
+    const items = Object.values(chainsByAddr).map((chain) => {
+      const title = chain.name ?? chain.address;
+      return (
+        <MenuItem value={chain.address} key={chain.address}>{title}</MenuItem>
+      );
+    });
+
+    items.push((
+      <MenuItem value="newChain" key="new">New Chain</MenuItem>
+    ));
+
+    return items;
+  }
+
+  function renderSelection(value: unknown) {
     // const text = value === 'None' ? 'Select chain' : value as string;
-    const text = value === 'new' ? 'New chain' : value as string;
+    const text = value === 'newChain' ? 'New Chain' : 
+      (!value || value === '' ? 'Select Chain' : value as string);
     return <StyledAddr>{text}</StyledAddr>
   }
 
@@ -127,15 +165,15 @@ export default function FirmBar() {
           </Typography>
           {/* <InputLabel id="demo-simple-select-label">Age</InputLabel> */}
           <StyledSelect
-            value={selectedChain}
-            onChange={onSelectChain}
+            value={value}
+            onChange={handleSelectChain}
             renderValue={renderSelection}
+            displayEmpty
           >
-            {/* <MenuItem value="None">Select chain</MenuItem> */}
-            <MenuItem value={addr1}>{addr1}</MenuItem>
-            <MenuItem value={addr2}>{addr2}</MenuItem>
-            <MenuItem value={addr3}>{addr3}</MenuItem>
-            <MenuItem value={'new'}>New chain</MenuItem>
+            <MenuItem disabled value="">
+              Select Chain
+            </MenuItem>
+            {renderMenuItems()}
           </StyledSelect>
 
           <Typography

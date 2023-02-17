@@ -1,0 +1,13 @@
+diff --git a/node_modules/@types/feather-route-matcher/index.d.ts b/node_modules/@types/feather-route-matcher/index.d.ts
+index c924939..509e6cc 100755
+--- a/node_modules/@types/feather-route-matcher/index.d.ts
++++ b/node_modules/@types/feather-route-matcher/index.d.ts
+@@ -8,7 +8,7 @@ interface RouteConfig<T> {
+ }
+ 
+ interface Match<T> {
+-    page: T;
++    value: T;
+     url: string;
+     params: { [key: string]: string } | null;
+ }

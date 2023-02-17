@@ -5,7 +5,7 @@ import FirmActions from './FirmActions';
 import FirmState from './FirmState';
 import ConfirmerHierarchy from './ConfirmerHierarchy';
 
-export function FirmChain() {
+export default function FirmChain() {
   const [tab, setTab] = React.useState('state');
 
   const handleTabChange = React.useCallback((event: React.SyntheticEvent, newValue: string) => {
@@ -35,8 +35,8 @@ export function FirmChain() {
       <Container component="main" maxWidth="xl" sx={{ mb: '4em', ml: '2em', mr: '2em' }}>
         {/* <FirmState /> */}
         {/* <FirmHistory /> */}
-        {/* <FirmActions /> */}
-        <ConfirmerHierarchy />
+        <FirmActions />
+        {/* <ConfirmerHierarchy /> */}
       </Container>
     </>
   );

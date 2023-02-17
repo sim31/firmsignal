@@ -43,7 +43,7 @@ export default function CreateChain() {
     <Container component="main" maxWidth="md" sx={{ mb: 4 }}>
       <Paper elevation={8} sx={{ my: { xs: 3, md: 6 }, p: { xs: 2, md: 3 } }}>
         <Typography component="h1" variant="h4" align="center">
-          Create a new chain
+          Create a New Chain
         </Typography>
         {/* <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
           Smart contract
