@@ -23,6 +23,7 @@
     "react-redux": "^8.0.5",
     "react-scripts": "5.0.1",
     "typescript": "^4.9.5",
+    "use-immer": "^0.8.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -52,6 +53,7 @@
   },
   "devDependencies": {
     "@types/feather-route-matcher": "^3.1.1",
+    "firmcontracts": "github:sim31/firmcontracts",
     "patch-package": "^6.5.1"
   }
 }

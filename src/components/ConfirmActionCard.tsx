@@ -6,7 +6,7 @@ import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { Stack } from '@mui/material';
-import { BlockTags, blockTagsStr } from '../types';
+import { BlockTags, blockTagsStr } from '../global/types';
 
 export type BlockCardProps = {
   num: number;

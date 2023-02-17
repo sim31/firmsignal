@@ -1,10 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../store";
-
-export interface Chain {
-  address: string,
-  name?: string,
-}
+import { Chain } from "../types";
 
 export interface Chains {
   byAddress: Record<string, Chain>;

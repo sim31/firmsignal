@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography';
 import { customTextWidthCss } from '../helpers/hashDisplay';
 import { styled } from '@mui/material/styles';
 import { Stack } from '@mui/material';
-import { BlockTags, blockTagsStr } from '../types';
+import { BlockTags, blockTagsStr } from '../global/types';
 import ShortenedBlockId from './ShortenedBlockId';
 
 export type BlockCardProps = {

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { ChangeEvent, useCallback, useState } from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -23,24 +23,150 @@ import RadioGroup from '@mui/material/RadioGroup';
 import Radio from '@mui/material/Radio';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
+import { useImmer } from 'use-immer';
+import { FullConfirmer } from '../global/types';
+import useIncrementingId from '../hooks/useIncrementingId';
+import { stringify } from 'querystring';
+import assert from '../helpers/assert';
 // import AddressForm from './AddressForm';
 // import PaymentForm from './PaymentForm';
 // import Review from './Review';
 
+type ConfirmerEntry = FullConfirmer & { id: string };
+type ConfirmerProp = Exclude<keyof ConfirmerEntry, 'id'>;
 
 export default function CreateChain() {
- const [scType, setScType] = React.useState('fs-only');
+  const [scType, setScType] = useState('fs-only');
+  const [name, setName] = useState('');
+  const [threshold, setThreshold] = useState<number | undefined>(undefined);
+  const newConfirmerId = useIncrementingId('confirmer'); 
 
-  const handleScTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setScType((event.target as HTMLInputElement).value);
-  };
+  const newConfirmerEntry = useCallback(() => {
+    return {
+      id: newConfirmerId(),
+      addr: '',
+      ipnsAddr: '',
+      name: '',
+      weight: -1,
+    }
+  }, [newConfirmerId]);
 
-  // function renderConfirmers() {
-    
-  // }
+  const [confirmers, updateConfirmers] = useImmer<Record<string, ConfirmerEntry>>(() => {
+    const conf = newConfirmerEntry();
+    return {
+      [conf.id]: conf,
+    }
+  });
+
+  const onScTypeChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setScType(event.target.value);
+    },
+    [setScType]
+  );
+
+  const onNameChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+    setName(event.target.value);
+  }, [setName]);
+
+  const onThresholdChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (typeof event.target.value === 'number' && event.target.value >= 0) {
+        setThreshold(event.target.value);
+      }
+    }, [setThreshold]
+  );
+
+  const onConfirmerChange = useCallback(
+    (
+      value: string,
+      property: Exclude<keyof ConfirmerEntry, 'id'>,
+      confirmerId: string
+    ) => {
+      updateConfirmers(confirmers => {
+        if (property === 'weight') {
+          const weight = parseInt(value);
+          confirmers[confirmerId][property] = weight;
+        } else {
+          confirmers[confirmerId][property] = value.toString();
+        }
+      });
+    },
+    [updateConfirmers],
+  );
+
+  const onAddConfirmer = useCallback(
+    () => {
+      updateConfirmers(confirmers => {
+        const conf = newConfirmerEntry();
+        confirmers[conf.id] = conf;
+      });
+    },
+    [updateConfirmers, newConfirmerEntry],
+  )
+
+  const onRemoveConfirmer = useCallback(
+    (confirmerId: string) => {
+      updateConfirmers(confirmers =>{
+        delete confirmers[confirmerId];
+      });
+    },
+    [updateConfirmers],
+  )
+  
+
+  function renderConfirmers() {
+    return Object.values(confirmers).map((confirmer) => {
+      return (
+        <Stack direction="row" spacing={1} key={confirmer.id}>
+          <IconButton 
+            aria-label="delete"
+            sx={{ padding: 0, mt: '0.8em', mr: '0.5em' }}
+            onClick={() => onRemoveConfirmer(confirmer.id)}
+          >
+            x
+          </IconButton>
+          <TextField
+            required
+            label="Name"
+            variant="standard"
+            sx={{ width: '20em' }}
+            value={confirmer.name}
+            onChange={e => onConfirmerChange(e.target.value, 'name', confirmer.id)}
+          />
+          <TextField
+            required
+            label="Address"
+            variant="standard"
+            fullWidth
+            value={confirmer.addr}
+            onChange={e => onConfirmerChange(e.target.value, 'addr', confirmer.id)}
+          />
+          {/* TODO: How to show place holder without causing warnings */}
+          <TextField
+            required
+            type="number"
+            label="Weight"
+            variant="standard"
+            sx={{ width: '12em' }}
+            value={confirmer.weight >= 0 && !isNaN(confirmer.weight) ? confirmer.weight : ''}
+            onChange={e => onConfirmerChange(e.target.value, 'weight', confirmer.id)}
+          />
+          <TextField
+            label="IPNS address"
+            variant="standard"
+            fullWidth
+            value={confirmer.ipnsAddr}
+            onChange={e => onConfirmerChange(e.target.value, 'ipnsAddr', confirmer.id)}
+          />
+        </Stack>
+      );
+    });
+  }
 
   return (
-    <Container component="main" maxWidth="md" sx={{ mb: 4 }}>
+    <Container component="main" maxWidth="lg" sx={{ mb: 4 }}>
       <Paper elevation={8} sx={{ my: { xs: 3, md: 6 }, p: { xs: 2, md: 3 } }}>
         <Typography component="h1" variant="h4" align="center">
           Create a New Chain
@@ -55,6 +181,8 @@ export default function CreateChain() {
             label="Name"
             variant="standard"
             sx={{ maxWidth: '14em' }}
+            value={name}
+            onChange={onNameChange}
           />
           <FormControl>
             <FormLabel>
@@ -65,13 +193,15 @@ export default function CreateChain() {
               row
               name="radio-buttons-group"
               value={scType}
-              onChange={handleScTypeChange}
+              onChange={onScTypeChange}
             >
               <FormControlLabel value="fs-only" control={<Radio />} label="Filesystem smart contract" />
               <FormControlLabel value="fs-token" control={<Radio />} label="Filesystem and token" />
             </RadioGroup>
           </FormControl>
 
+
+          {/* TODO: Add helper text to say what you're setting */}
           <TextField
             required
             type="number"
@@ -79,61 +209,32 @@ export default function CreateChain() {
             label="Threshold"
             variant="standard"
             sx={{ width: '6em' }}
+            value={threshold}
+            onChange={onThresholdChange}
           />
 
-          <Stack direction="row" spacing={1}>
-            <IconButton aria-label="delete" sx={{ padding: 0, mt: '0.5em' }}>
-              x
-            </IconButton>
-            <TextField
-              required
-              label="Name"
-              variant="standard"
-              sx={{ width: '14em' }}
-            />
-            <TextField
-              required
-              label="Address"
-              variant="standard"
-              fullWidth
-            />
-            <TextField
-              required
-              type="number"
-              label="Weight"
-              variant="standard"
-              sx={{ width: '6em' }}
-            />
-          </Stack>
+          {renderConfirmers()}
 
-          <Stack direction="row" spacing={1}>
-            <IconButton aria-label="delete" sx={{ padding: 0, mt: '0.5em' }}>
-              x
-            </IconButton>
-            <TextField
-              required
-              label="Name"
-              variant="standard"
-              sx={{ width: '14em' }}
-            />
-            <TextField
-              required
-              label="Address"
-              variant="standard"
-              fullWidth
-            />
-            <TextField
-              required
-              type="number"
-              label="Weight"
-              variant="standard"
-              sx={{ width: '6em' }}
-            />
-          </Stack>
+          <Button size="medium" color="secondary" onClick={onAddConfirmer}>Add confirmer</Button>
 
-          <Button>Add confirmer</Button>
+          <Box
+            m={1}
+           //margin
+            display="flex"
+            justifyContent="flex-end"
+            alignItems="flex-end"
+          >
+            <Button
+              size="large"
+              color="primary"
+              sx={{ mr: 2, fontSize: 18 }}
+            >
+              Submit
+            </Button>
+          </Box>
 
         </Stack>
+
         
       </Paper>
     </Container>

@@ -1,4 +1,6 @@
+import * as AbiTypes from 'firmcontracts/typechain-types/FirmChainAbi';
 
+// Blocks
 export type BlockStatus = 
   | 'consensus' // If this is the latest finalized block
   | 'past'      // If this block is finalized but not the latest
@@ -26,3 +28,18 @@ export function actionTagsStr(actionStatus: ActionStatus) {
 export function actionHeaderStr(actionId: string, actionStatus: ActionStatus) {
   return `#${actionId} ${actionTagsStr(actionStatus)}`;
 }
+
+// Chains
+export interface Chain {
+  address: string,
+  name?: string,
+}
+
+// Confirmers
+export type ConfirmerOutput = AbiTypes.ConfirmerStructOutput;
+export type FullConfirmerOutput = ConfirmerOutput & {
+  name: string;
+  ipnsAddr: string;
+}
+export type FullConfirmer = Omit<FullConfirmerOutput, keyof [string, number]>;
+

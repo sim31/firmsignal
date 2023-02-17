@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography';
 import { customTextWidthCss } from '../helpers/hashDisplay';
 import { styled } from '@mui/material/styles';
 import { Checkbox, Stack } from '@mui/material';
-import { actionHeaderStr, ActionStatus, actionTagsStr, BlockTags, blockTagsStr } from '../types';
+import { actionHeaderStr, ActionStatus, actionTagsStr, BlockTags, blockTagsStr } from '../global/types';
 
 export type ActionCreateCardProps = {
   title: string; // Action name
