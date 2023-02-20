@@ -6,7 +6,10 @@ import reportWebVitals from './reportWebVitals';
 import { Provider } from 'react-redux';
 import { store } from './global/store';
 import { initLocationSync } from './global/init';
+import { init as initContractEnv } from './contracts/contracts';
 
+// Track when it is loaded (this is async function)
+initContractEnv();
 initLocationSync();
 
 const root = ReactDOM.createRoot(

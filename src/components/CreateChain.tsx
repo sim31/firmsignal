@@ -28,6 +28,7 @@ import { FullConfirmer } from '../global/types';
 import useIncrementingId from '../hooks/useIncrementingId';
 import { stringify } from 'querystring';
 import assert from '../helpers/assert';
+import { main } from '../contracts/contracts';
 // import AddressForm from './AddressForm';
 // import PaymentForm from './PaymentForm';
 // import Review from './Review';
@@ -114,7 +115,15 @@ export default function CreateChain() {
     },
     [updateConfirmers],
   )
+
+  const onSubmit = useCallback(
+    () => {
+      main('Greeter');
+    },
+    [],
+  )
   
+
 
   function renderConfirmers() {
     return Object.values(confirmers).map((confirmer) => {
@@ -143,7 +152,6 @@ export default function CreateChain() {
             value={confirmer.addr}
             onChange={e => onConfirmerChange(e.target.value, 'addr', confirmer.id)}
           />
-          {/* TODO: How to show place holder without causing warnings */}
           <TextField
             required
             type="number"
@@ -228,6 +236,7 @@ export default function CreateChain() {
               size="large"
               color="primary"
               sx={{ mr: 2, fontSize: 18 }}
+              onClick={onSubmit}
             >
               Submit
             </Button>
