@@ -118,7 +118,7 @@ export default function CreateChain() {
 
   const onSubmit = useCallback(
     () => {
-      main('Greeter');
+      main();
     },
     [],
   )

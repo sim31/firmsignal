@@ -1,230 +1,214 @@
 // TODO: Rename this file
-import { join } from 'path'
-import { readFileSync } from 'fs'
-import { defaultAbiCoder as AbiCoder, Interface } from '@ethersproject/abi'
-import { Address } from '@ethereumjs/util'
-import { Chain, Common, Hardfork } from '@ethereumjs/common'
-import { Transaction } from '@ethereumjs/tx'
-import { VM } from '@ethereumjs/vm';
-import { buildTransaction, encodeDeployment, encodeFunction } from './txBuilder'
-import { getAccountNonce, insertAccount } from './accountUtils'
-import { Block } from '@ethereumjs/block'
-const solc = require('solc')
+import ganache from 'ganache';
+import { ethers, utils, BytesLike, BigNumberish } from 'ethers';
+import { BlockHeaderStruct, BlockStruct, CallStruct, ConfirmerStruct, SignatureStruct,  } from 'firmcontracts/typechain-types/FirmChainAbi';
+import { ConfirmerOpStruct } from 'firmcontracts/typechain-types/FirmChain';
 
-const INITIAL_GREETING = 'Hello, World!'
-const SECOND_GREETING = 'Hola, Mundo!'
+type ConfirmerOp = ConfirmerOpStruct;
 
-const common = new Common({ chain: Chain.Goerli, hardfork: Hardfork.Merge })
-const block = Block.fromBlockData({ header: { extraData: Buffer.alloc(97) } }, { common })
-let vm: VM
-let accountAddr: Address;
-let accountPk: Buffer;
+export type Confirmer = ConfirmerStruct;
+export type Block = BlockStruct;
+export type BlockHeader = BlockHeaderStruct;
+export type Call = CallStruct;
+export type Signature = SignatureStruct;
 
+const ConfirmerOpId = {
+  Add: 0,
+  Remove: 1
+} as const;
 
-export async function init() {
-  accountPk = Buffer.from(
-  'e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109',
-  'hex'
-  );
+export const ZeroId = ethers.constants.HashZero;
+export const ZeroAddr = ethers.constants.AddressZero;
 
-  vm = await VM.create({ common })
-  accountAddr = Address.fromPrivateKey(accountPk)
-
-  console.log('Account: ', accountAddr.toString())
-  await insertAccount(vm, accountAddr)
+function createAddConfirmerOps(confs: Confirmer[]): ConfirmerOp[] {
+  return confs.map(conf => { return {opId:  ConfirmerOpId.Add, conf} });
 }
 
-/**
- * This function creates the input for the Solidity compiler.
- *
- * For more info about it, go to https://solidity.readthedocs.io/en/v0.5.10/using-the-compiler.html#compiler-input-and-output-json-description
- *
- * Note: this example additionally needs the Solidity compiler `solc` package (out of EthereumJS
- * scope) being installed. You can do this (in this case it might make sense to install globally)
- * with `npm i -g solc`.
- */
-async function getSolcInput(file: string) {
-  const path = `contracts/${file}`;
-  return fetch(path)
-    .then(response => response.text())
-    .then((solContent: string) => {
-      return {
-        language: 'Solidity',
-        sources: {
-          [path]: {
-            content: solContent
-          },
-          // If more contracts were to be compiled, they should have their own entries here
-        },
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-          evmVersion: 'petersburg',
-          outputSelection: {
-            '*': {
-              '*': ['abi', 'evm.bytecode'],
-            },
-          },
-        },
-      };
-    });
+export function encodeBlockBody(calls: readonly Call[]): BytesLike {
+  const coder = utils.defaultAbiCoder;
+  return coder.encode(["tuple(address addr, bytes cdata)[]"], [calls]);
 }
 
-/**
- * This function compiles all the contracts in `contracts/` and returns the Solidity Standard JSON
- * output. If the compilation fails, it returns `undefined`.
- *
- * To learn about the output format, go to https://solidity.readthedocs.io/en/v0.5.10/using-the-compiler.html#compiler-input-and-output-json-description
- */
-function compileContract(file: string) {
-  const input = getSolcInput(file)
-  const output = JSON.parse(solc.compile(JSON.stringify(input)))
+export function getBlockBodyId(calls: Call[]): string;
+export function getBlockBodyId(block: Block): string;
+export function getBlockBodyId(callsOrBlock: Block | Call[]): string {
+  let encBody: BytesLike =  ""; 
+  if (Array.isArray(callsOrBlock)) {
+    encBody = encodeBlockBody(callsOrBlock);
+  } else {
+    encBody = encodeBlockBody(callsOrBlock.calls);
+  }
+  return utils.keccak256(encBody);
+}
 
-  if (output.errors) {
-    for (const error of output.errors) {
-      if (error.severity === 'error') {
-        throw Error(`Compilation of ${file} failed: ${error.formattedMessage}`);
-      } else {
-        console.warn(error.formattedMessage)
+export async function encodeConfirmer(conf: Confirmer): Promise<BytesLike> {
+  const bytes = utils.hexConcat(
+    [utils.zeroPad("0x00", 11),
+    await Promise.resolve(conf.addr),
+    [Number((await Promise.resolve(conf.weight)).toString())]
+  ]);
+  // expect(bytes.length).to.equal(66);
+  return bytes;
+}
+
+export async function getConfirmerSetId(confs: Confirmer[], threshold: number): Promise<string> {
+  let packedConfs: BytesLike[] = [];
+  for (const c of confs) {
+    packedConfs.push(await encodeConfirmer(c));
+  }
+  return utils.solidityKeccak256(["uint8", "bytes32[]"], [threshold, packedConfs]);
+}
+
+const ganacheProv = ganache.provider({
+  fork: {
+    network: 'goerli'
+  }
+});
+
+const provider = new ethers.providers.Web3Provider(ganacheProv as any);
+
+function linkLibraries(
+  {
+    bytecode,
+    linkReferences,
+  }: {
+    bytecode: string
+    linkReferences: { [fileName: string]: { [contractName: string]: { length: number; start: number }[] } }
+  },
+  libraries: { [libraryName: string]: string }
+): string {
+  Object.keys(linkReferences).forEach((fileName) => {
+    Object.keys(linkReferences[fileName]).forEach((contractName) => {
+      if (!libraries.hasOwnProperty(contractName)) {
+        throw new Error(`Missing link library name ${contractName}`)
       }
-    }
-  }
-
-  return output
-}
-
-function getDeploymentBytecode(solcOutput: any, contractName: string): any {
-  return solcOutput.contracts[`contracts/${contractName}.sol`][contractName].evm.bytecode.object;
-}
-
-// TODO: Make generic... Or use generated types
-async function deployContract(
-  vm: VM,
-  senderPrivateKey: Buffer,
-  deploymentBytecode: Buffer,
-  greeting: string
-): Promise<Address> {
-  // Contracts are deployed by sending their deployment bytecode to the address 0
-  // The contract params should be abi-encoded and appended to the deployment bytecode.
-  const data = encodeDeployment(deploymentBytecode.toString('hex'), {
-    types: ['string'],
-    values: [greeting],
+      const address = utils.getAddress(libraries[contractName]).toLowerCase().slice(2)
+      linkReferences[fileName][contractName].forEach(({ start: byteStart, length: byteLength }) => {
+        const start = 2 + byteStart * 2
+        const length = byteLength * 2
+        bytecode = bytecode
+          .slice(0, start)
+          .concat(address)
+          .concat(bytecode.slice(start + length, bytecode.length))
+      })
+    })
   })
-  const txData = {
-    data,
-    nonce: await getAccountNonce(vm, senderPrivateKey),
+  return bytecode
+}
+
+async function deployAbi() {
+  const path = 'contract-artifacts/contracts/FirmChainAbi.sol/FirmChainAbi.json';
+
+  const resp = await fetch(path);
+  const obj = await resp.json();
+  const keys = Object.keys(obj);
+  if (!keys.includes('bytecode') || !keys.includes('abi')) {
+    throw new Error("Contract json has to include bytecode and abi fields")
   }
 
-  const tx = Transaction.fromTxData(buildTransaction(txData), { common }).sign(senderPrivateKey)
+  const signer = provider.getSigner(0);
+  const factory = new ethers.ContractFactory(obj['abi'], obj['bytecode'], signer);
 
-  const deploymentResult = await vm.runTx({ tx, block })
+  const contract = await factory.deploy({ gasLimit: 9552000 });
 
-  if (deploymentResult.execResult.exceptionError) {
-    throw deploymentResult.execResult.exceptionError
+  console.log("Abi contract: ", contract);
+
+  return contract;
+}
+
+
+async function deployFirmChainImpl(abiContr: ethers.Contract) {
+  const path = 'contract-artifacts/contracts/FirmChainImpl.sol/FirmChainImpl.json';
+
+  const resp = await fetch(path);
+  const obj = await resp.json();
+  const keys = Object.keys(obj);
+  if (!keys.includes('bytecode') || !keys.includes('abi')) {
+    throw new Error("Contract json has to include bytecode and abi fields")
   }
 
-  return deploymentResult.createdAddress!
+  const bytecode = linkLibraries(obj, { FirmChainAbi: abiContr.address });
+
+  const factory = new ethers.ContractFactory(obj['abi'], bytecode, provider.getSigner(0));
+
+  const contract = await factory.deploy({ gasLimit: 9552000 });
+
+  console.log("FirmChainImpl contract: ", contract);
+
+  return contract;
+}
+
+async function deployFirmChain(impl: ethers.Contract) {
+  const path = 'contract-artifacts/contracts/FirmChain.sol/FirmChain.json';
+
+  const resp = await fetch(path);
+  const obj = await resp.json();
+  const keys = Object.keys(obj);
+  if (!keys.includes('bytecode') || !keys.includes('abi')) {
+    throw new Error("Contract json has to include bytecode and abi fields")
+  }
+
+  const bytecode = linkLibraries(obj, { FirmChainImpl: impl.address });
+
+  const factory = new ethers.ContractFactory(obj['abi'], bytecode, provider.getSigner(0));
+
+  const signers = [
+    provider.getSigner(0), provider.getSigner(1), provider.getSigner(2),
+    provider.getSigner(3), provider.getSigner(4),
+  ];
+
+  const confs: Confirmer[] = [
+    {
+      addr: signers[0].getAddress(),
+      weight: 1
+    },
+    {
+      addr: signers[1].getAddress(),
+      weight: 1
+    },
+    {
+      addr: signers[2].getAddress(),
+      weight: 1
+    },
+    {
+      addr: signers[3].getAddress(),
+      weight: 1
+    }
+  ];
+  const threshold = 3;
+  const confSetId = await getConfirmerSetId(confs, threshold);
+  const confOps: ConfirmerOp[] = createAddConfirmerOps(confs);
+
+  const calls: Call[] = []
+  const bodyId = getBlockBodyId(calls);
+
+  const header: BlockHeader = {
+    prevBlockId: ZeroId,
+    blockBodyId: bodyId,
+    confirmerSetId: confSetId,
+    timestamp: 0,
+    sigs: []
+  };
+
+  const genesisBl: Block = {
+    header,
+    calls
+  };
+
+
+  const contract = await factory.deploy(genesisBl, confOps, threshold, { gasLimit: 9552000 });
+
+  console.log("FirmChain contract: ", contract);
+
+  return contract;
 }
 
 export async function addContract(contractName: string) {
-  const solcOutput = compileContract(`${contractName}.sol`);
-
-  const bytecode = getDeploymentBytecode(solcOutput, contractName);
-
-  console.log('Deploying the contract...')
-
-  const contractAddress = await deployContract(vm, accountPk, bytecode, INITIAL_GREETING)
-
-  console.log('Contract address:', contractAddress.toString())
-
-  return contractAddress;
+  const abiContr = await deployAbi();
+  const firmChainImpl = await deployFirmChainImpl(abiContr);
+  const firmChain = await deployFirmChain(firmChainImpl);
 }
 
-async function setGreeting(
-  vm: VM,
-  senderPrivateKey: Buffer,
-  contractAddress: Address,
-  greeting: string
-) {
-  const data = encodeFunction('setGreeting', {
-    types: ['string'],
-    values: [greeting],
-  })
-
-  const txData = {
-    to: contractAddress,
-    data,
-    nonce: await getAccountNonce(vm, senderPrivateKey),
-  }
-
-  const tx = Transaction.fromTxData(buildTransaction(txData), { common }).sign(senderPrivateKey)
-
-  const setGreetingResult = await vm.runTx({ tx, block })
-
-  if (setGreetingResult.execResult.exceptionError) {
-    throw setGreetingResult.execResult.exceptionError
-  }
-}
-
-async function getGreeting(vm: VM, contractAddress: Address, caller: Address) {
-  const sigHash = new Interface(['function greet()']).getSighash('greet')
-
-  const greetResult = await vm.evm.runCall({
-    to: contractAddress,
-    caller: caller,
-    origin: caller, // The tx.origin is also the caller here
-    data: Buffer.from(sigHash.slice(2), 'hex'),
-    block,
-  })
-
-  if (greetResult.execResult.exceptionError) {
-    throw greetResult.execResult.exceptionError
-  }
-
-  const results = AbiCoder.decode(['string'], greetResult.execResult.returnValue)
-
-  return results[0]
-}
-
-export async function main(contractName: string) {
-  const contractAddress = await addContract(contractName);
-
-  console.log('Contract address:', contractAddress.toString())
-
-  const greeting = await getGreeting(vm, contractAddress, accountAddr)
-
-  console.log('Greeting:', greeting)
-
-  if (greeting !== INITIAL_GREETING)
-    throw new Error(
-      `initial greeting not equal, received ${greeting}, expected ${INITIAL_GREETING}`
-    )
-
-  console.log('Changing greeting...')
-
-  await setGreeting(vm, accountPk, contractAddress, SECOND_GREETING)
-
-  const greeting2 = await getGreeting(vm, contractAddress, accountAddr)
-
-  console.log('Greeting:', greeting2)
-
-  if (greeting2 !== SECOND_GREETING)
-    throw new Error(`second greeting not equal, received ${greeting2}, expected ${SECOND_GREETING}`)
-
-  // Now let's look at what we created. The transaction
-  // should have created a new account for the contract
-  // in the state. Let's test to see if it did.
-
-  const createdAccount = await vm.stateManager.getAccount(contractAddress)
-
-  console.log('-------results-------')
-  console.log('nonce: ' + createdAccount.nonce.toString())
-  console.log('balance in wei: ', createdAccount.balance.toString())
-  console.log('storageRoot: 0x' + createdAccount.storageRoot.toString('hex'))
-  console.log('codeHash: 0x' + createdAccount.codeHash.toString('hex'))
-  console.log('---------------------')
-
-  console.log('Everything ran correctly!')
+export async function main() {
+  await addContract('test');
 }
