@@ -1,63 +1,9 @@
 // TODO: Rename this file
 import ganache from 'ganache';
-import { ethers, utils, BytesLike, BigNumberish } from 'ethers';
-import { BlockHeaderStruct, BlockStruct, CallStruct, ConfirmerStruct, SignatureStruct,  } from 'firmcontracts/typechain-types/FirmChainAbi';
-import { ConfirmerOpStruct } from 'firmcontracts/typechain-types/FirmChain';
-
-type ConfirmerOp = ConfirmerOpStruct;
-
-export type Confirmer = ConfirmerStruct;
-export type Block = BlockStruct;
-export type BlockHeader = BlockHeaderStruct;
-export type Call = CallStruct;
-export type Signature = SignatureStruct;
-
-const ConfirmerOpId = {
-  Add: 0,
-  Remove: 1
-} as const;
-
-export const ZeroId = ethers.constants.HashZero;
-export const ZeroAddr = ethers.constants.AddressZero;
-
-function createAddConfirmerOps(confs: Confirmer[]): ConfirmerOp[] {
-  return confs.map(conf => { return {opId:  ConfirmerOpId.Add, conf} });
-}
-
-export function encodeBlockBody(calls: readonly Call[]): BytesLike {
-  const coder = utils.defaultAbiCoder;
-  return coder.encode(["tuple(address addr, bytes cdata)[]"], [calls]);
-}
-
-export function getBlockBodyId(calls: Call[]): string;
-export function getBlockBodyId(block: Block): string;
-export function getBlockBodyId(callsOrBlock: Block | Call[]): string {
-  let encBody: BytesLike =  ""; 
-  if (Array.isArray(callsOrBlock)) {
-    encBody = encodeBlockBody(callsOrBlock);
-  } else {
-    encBody = encodeBlockBody(callsOrBlock.calls);
-  }
-  return utils.keccak256(encBody);
-}
-
-export async function encodeConfirmer(conf: Confirmer): Promise<BytesLike> {
-  const bytes = utils.hexConcat(
-    [utils.zeroPad("0x00", 11),
-    await Promise.resolve(conf.addr),
-    [Number((await Promise.resolve(conf.weight)).toString())]
-  ]);
-  // expect(bytes.length).to.equal(66);
-  return bytes;
-}
-
-export async function getConfirmerSetId(confs: Confirmer[], threshold: number): Promise<string> {
-  let packedConfs: BytesLike[] = [];
-  for (const c of confs) {
-    packedConfs.push(await encodeConfirmer(c));
-  }
-  return utils.solidityKeccak256(["uint8", "bytes32[]"], [threshold, packedConfs]);
-}
+import { ethers, utils, }  from 'ethers';
+import { Block, BlockHeader, Call, Confirmer, ConfirmerOp, ZeroId } from 'firmcontracts/interface-helpers/types'
+import { getBlockBodyId, getConfirmerSetId } from 'firmcontracts/interface-helpers/abi';
+import { createAddConfirmerOps } from 'firmcontracts/interface-helpers/firmchain';
 
 const ganacheProv = ganache.provider({
   fork: {
