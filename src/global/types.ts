@@ -1,4 +1,4 @@
-import * as AbiTypes from 'firmcontracts/typechain-types/FirmChainAbi';
+import { ConfirmerOutput } from "firmcontracts/interface-helpers/types";
 
 // Blocks
 export type BlockStatus = 
@@ -36,7 +36,6 @@ export interface Chain {
 }
 
 // Confirmers
-export type ConfirmerOutput = AbiTypes.ConfirmerStructOutput;
 export type FullConfirmerOutput = ConfirmerOutput & {
   name: string;
   ipnsAddr: string;

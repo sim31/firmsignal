@@ -4,6 +4,12 @@ import { ethers, utils, }  from 'ethers';
 import { Block, BlockHeader, Call, Confirmer, ConfirmerOp, ZeroId } from 'firmcontracts/interface-helpers/types'
 import { getBlockBodyId, getConfirmerSetId } from 'firmcontracts/interface-helpers/abi';
 import { createAddConfirmerOps } from 'firmcontracts/interface-helpers/firmchain';
+import { FullConfirmer } from '../global/types';
+
+type Address = string;
+
+const libraries: Record<string, ethers.Contract> = {};
+const firmChains: Record<Address, ethers.Contract> = {};
 
 const ganacheProv = ganache.provider({
   fork: {
@@ -84,7 +90,7 @@ async function deployFirmChainImpl(abiContr: ethers.Contract) {
   return contract;
 }
 
-async function deployFirmChain(impl: ethers.Contract) {
+async function deployFirmChain(impl: ethers.Contract, args: FirmChainConstrArgs) {
   const path = 'contract-artifacts/contracts/FirmChain.sol/FirmChain.json';
 
   const resp = await fetch(path);
@@ -98,31 +104,12 @@ async function deployFirmChain(impl: ethers.Contract) {
 
   const factory = new ethers.ContractFactory(obj['abi'], bytecode, provider.getSigner(0));
 
-  const signers = [
-    provider.getSigner(0), provider.getSigner(1), provider.getSigner(2),
-    provider.getSigner(3), provider.getSigner(4),
-  ];
+  // TODO: current timestamp
+  const confs: Confirmer[] = args.confirmers.map((conf) => {
+    return { addr: conf.addr, weight: conf.weight };
+  })
 
-  const confs: Confirmer[] = [
-    {
-      addr: signers[0].getAddress(),
-      weight: 1
-    },
-    {
-      addr: signers[1].getAddress(),
-      weight: 1
-    },
-    {
-      addr: signers[2].getAddress(),
-      weight: 1
-    },
-    {
-      addr: signers[3].getAddress(),
-      weight: 1
-    }
-  ];
-  const threshold = 3;
-  const confSetId = await getConfirmerSetId(confs, threshold);
+  const confSetId = await getConfirmerSetId(confs, args.threshold);
   const confOps: ConfirmerOp[] = createAddConfirmerOps(confs);
 
   const calls: Call[] = []
@@ -141,20 +128,35 @@ async function deployFirmChain(impl: ethers.Contract) {
     calls
   };
 
-
-  const contract = await factory.deploy(genesisBl, confOps, threshold, { gasLimit: 9552000 });
+  const contract = await factory.deploy(genesisBl, confOps, args.threshold, { gasLimit: 9552000 });
 
   console.log("FirmChain contract: ", contract);
 
   return contract;
 }
 
-export async function addContract(contractName: string) {
-  const abiContr = await deployAbi();
-  const firmChainImpl = await deployFirmChainImpl(abiContr);
-  const firmChain = await deployFirmChain(firmChainImpl);
+export type FirmChainConstrArgs = {
+  confirmers: FullConfirmer[],
+  threshold: number,
+};
+
+
+export async function init() {
+  libraries['firmchainAbi'] = await deployAbi();
+  libraries['firmchainImpl'] = await deployFirmChainImpl(libraries['firmchainAbi']);
 }
 
-export async function main() {
-  await addContract('test');
+export async function newFirmChain(args: FirmChainConstrArgs) {
+  if (!libraries['firmchainImpl']) {
+    await init();
+  }
+  const firmChain = await deployFirmChain(
+    libraries['firmchainImpl'],
+    args
+  );
+
+  firmChains[firmChain.address] = firmChain;
+
+  return firmChain.address;
 }
+

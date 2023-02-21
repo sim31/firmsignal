@@ -9,6 +9,7 @@ import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
 import Button from '@mui/material/Button';
+import Alert, { AlertColor } from '@mui/material/Alert';
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
@@ -28,19 +29,28 @@ import { FullConfirmer } from '../global/types';
 import useIncrementingId from '../hooks/useIncrementingId';
 import { stringify } from 'querystring';
 import assert from '../helpers/assert';
-import { main } from '../contracts/contracts';
+import { newFirmChain } from '../contracts/contracts';
 // import AddressForm from './AddressForm';
 // import PaymentForm from './PaymentForm';
 // import Review from './Review';
 
 type ConfirmerEntry = FullConfirmer & { id: string };
 type ConfirmerProp = Exclude<keyof ConfirmerEntry, 'id'>;
+type Alert = {
+  status: AlertColor | 'none';
+  msg: string;
+}
 
 export default function CreateChain() {
   const [scType, setScType] = useState('fs-only');
   const [name, setName] = useState('');
   const [threshold, setThreshold] = useState<number | undefined>(undefined);
   const newConfirmerId = useIncrementingId('confirmer'); 
+  const [alert, setAlert] = useState<Alert>({
+    status: 'none',
+    msg: '',
+  });
+  const [alertMsg, setAlertMsg] = useState<string>('');
 
   const newConfirmerEntry = useCallback(() => {
     return {
@@ -117,10 +127,25 @@ export default function CreateChain() {
   )
 
   const onSubmit = useCallback(
-    () => {
-      main();
+    async () => {
+      // TODO: Show error if not enough information (like threshold not set)
+      try {
+        const address = await newFirmChain({
+          confirmers: Object.values(confirmers),
+          threshold: threshold ?? 0,
+        });
+        setAlert({
+          status: 'info',
+          msg: `Created FirmChain: ${address}`,
+        });
+      } catch(err) {
+        setAlert({
+          status: 'error',
+          msg: `Failed creating new chain. Error: ${err}`
+        });
+      }
     },
-    [],
+    [confirmers, threshold],
   )
   
 
@@ -232,6 +257,9 @@ export default function CreateChain() {
             justifyContent="flex-end"
             alignItems="flex-end"
           >
+            {alert.status === 'none'
+              ? null : <Alert severity={alert.status}>{alert.msg}</Alert>
+            }
             <Button
               size="large"
               color="primary"
