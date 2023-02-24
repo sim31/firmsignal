@@ -121,7 +121,9 @@ export default function FirmBar() {
   }, [routeMatch, chainsByAddr]);
 
   const handleSelectChain = React.useCallback((e: SelectChangeEvent<unknown>) => {
-    dispatch(setLocation(e.target.value as string));
+    const val = e.target.value as string;
+    const newLoc = val === 'newChain' ? val : `/chains/${val}`;
+    dispatch(setLocation(newLoc));
   }, [dispatch]);
 
   function renderMenuItems() {

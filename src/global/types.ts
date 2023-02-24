@@ -1,4 +1,3 @@
-import { ConfirmerOutput } from "firmcontracts/interface-helpers/types";
 import { AddressStr, ConfirmerValue } from "firmcontracts/interface/types";
 
 // Blocks

@@ -29,7 +29,9 @@ import { FullConfirmer } from '../global/types';
 import useIncrementingId from '../hooks/useIncrementingId';
 import { stringify } from 'querystring';
 import assert from '../helpers/assert';
-import { newFirmChain } from '../contracts/contracts';
+import { useAppDispatch } from '../global/hooks';
+import { initChain } from '../global/slices/chains';
+import { setLocation } from '../global/slices/appLocation';
 // import AddressForm from './AddressForm';
 // import PaymentForm from './PaymentForm';
 // import Review from './Review';
@@ -42,6 +44,7 @@ type Alert = {
 }
 
 export default function CreateChain() {
+  const dispatch = useAppDispatch();
   const [scType, setScType] = useState('fs-only');
   const [name, setName] = useState('');
   const [threshold, setThreshold] = useState<number | undefined>(undefined);
@@ -130,14 +133,18 @@ export default function CreateChain() {
     async () => {
       // TODO: Show error if not enough information (like threshold not set)
       try {
-        const address = await newFirmChain({
-          confirmers: Object.values(confirmers),
-          threshold: threshold ?? 0,
-        });
+        // TODO: Spinner
         setAlert({
           status: 'info',
-          msg: `Created FirmChain: ${address}`,
+          msg: 'Creating firmchain...',
         });
+        const args = {
+          confirmers: Object.values(confirmers),
+          threshold: threshold ?? 0,
+        };
+        const address = await dispatch(initChain(args)).unwrap();
+
+        dispatch(setLocation(`/chains/${address}`));
       } catch(err) {
         console.log(err);
         setAlert({

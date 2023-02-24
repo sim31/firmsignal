@@ -5,7 +5,7 @@ import {
   Block, BlockHeader, Message, Confirmer, ConfirmerOp, ZeroId, AddressStr,
   FirmChain, FirmChainAbi, FirmChainImpl, IFirmChain, IssuedNTT, Directory,
   FirmChain__factory, FirmChainAbi__factory, FirmChainImpl__factory,
-  Directory__factory, IssuedNTT__factory, ZeroAddr,
+  Directory__factory, IssuedNTT__factory, ZeroAddr, BlockValue,
 } from 'firmcontracts/interface/types'
 import { getBlockBodyId, getConfirmerSetId } from 'firmcontracts/interface/abi';
 import { createAddConfirmerOp, createAddConfirmerOps, createGenesisBlock } from 'firmcontracts/interface/firmchain';
@@ -61,7 +61,10 @@ async function deployFirmChain(impl: FirmChainImpl, args: FirmChainConstrArgs) {
     return createAddConfirmerOp(conf);
   });
 
-  const genesisBl = await createGenesisBlock([], confOps, args.threshold);
+  let genesisBl = args.genesisBl;
+  if (!genesisBl) {
+    genesisBl = await createGenesisBlock([], confOps, args.threshold);
+  }
 
   const contract = await factory.deploy(genesisBl, confOps, args.threshold, { gasLimit: 9552000 });
 
@@ -71,8 +74,8 @@ async function deployFirmChain(impl: FirmChainImpl, args: FirmChainConstrArgs) {
 export type FirmChainConstrArgs = {
   confirmers: FullConfirmer[],
   threshold: number,
+  genesisBl?: BlockValue,
 };
-
 
 export async function init() {
   abiLib = await deployAbi();
@@ -83,7 +86,7 @@ export async function init() {
   console.log("Directory deployed", directory.address);
 }
 
-export async function newFirmChain(args: FirmChainConstrArgs) {
+export async function initFirmChain(args: FirmChainConstrArgs) {
   if (!implLib || !directory || !abiLib) {
     await init();
   }

@@ -10,7 +10,7 @@ import {
   selectLocation,
   setLocation,
 } from '../global/slices/appLocation';
-import { selectDefaultChain } from '../global/slices/chains';
+import { selectChain, selectDefaultChain } from '../global/slices/chains';
 import { useAppSelector, useAppDispatch, useRouteMatcher } from '../global/hooks';
 import { rootRouteMatcher } from '../global/routes';
 

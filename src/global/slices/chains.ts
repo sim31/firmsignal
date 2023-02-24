@@ -1,38 +1,75 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { RootState } from "../store";
+import { createAsyncThunk, createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { AddressStr } from "firmcontracts/interface/types";
+import { FirmChainConstrArgs, initFirmChain } from "../../contracts/contracts";
+import { AppThunk, RootState } from "../store";
 import { Chain } from "../types";
+import { WritableDraft } from 'immer/dist/types/types-external';
 
 export interface Chains {
-  byAddress: Record<string, Chain>;
-  defaultChain?: string;
+  byAddress: Record<AddressStr, Chain>;
+  defaultChain?: AddressStr;
+  status: 'idle' | 'loading' | 'success' | 'failed';
+  error?: string;
 }
 
 const initialState: Chains = {
   byAddress: {},
+  status: 'idle',
 }
 
-export const appLocationSlice = createSlice({
+export const initChain = createAsyncThunk(
+  'counter/initChain',
+  async (args: FirmChainConstrArgs) => {
+    const address = await initFirmChain(args);
+    return address;
+  }
+);
+
+function _addChain(state: WritableDraft<Chains>, chain: Chain) {
+  // TODO: Proper validation of address
+  if (chain.address.length && !state.byAddress[chain.address]) {
+    state.byAddress[chain.address] = chain;
+    if (!state.defaultChain) {
+      state.defaultChain = chain.address;
+    }
+  }
+}
+
+export const chainsSlice = createSlice({
   name: 'chains',
   initialState,
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
     addChain: (state, action: PayloadAction<Chain>) => {
-      const chain = action.payload;
-      // TODO: Proper validation of address
-      if (chain.address.length && !state.byAddress[chain.address]) {
-        state.byAddress[chain.address] = chain;
-        if (!state.defaultChain) {
-          state.defaultChain = chain.address;
-        }
-      }
+      _addChain(state, action.payload);
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(initChain.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(initChain.fulfilled, (state, action) => {
+        state.status = 'success';
+        const newChain: Chain = {
+          address: action.payload
+        };
+        _addChain(state, newChain);
+      })
+      .addCase(initChain.rejected, (state) => {
+        state.status = 'failed';
+      });
   },
 });
 
-export const { addChain } = appLocationSlice.actions;
+
+export const { addChain } = chainsSlice.actions;
 
 export const selectDefaultChain = (state: RootState) => state.chains.defaultChain;
 export const selectChainsByAddress = (state: RootState) => state.chains.byAddress;
+// Use like this: const chain = useAppSelector(state => selectChain(state, "aaa"))
+export const selectChain = (state: RootState, address: AddressStr) =>
+  state.chains.byAddress[address];
 
 
-export default appLocationSlice.reducer;
+export default chainsSlice.reducer;
