@@ -142,9 +142,9 @@ export default function CreateChain() {
           confirmers: Object.values(confirmers),
           threshold: threshold ?? 0,
         };
-        const address = await dispatch(initChain(args)).unwrap();
+        const chain = await dispatch(initChain(args)).unwrap();
 
-        dispatch(setLocation(`/chains/${address}`));
+        dispatch(setLocation(`/chains/${chain.address}`));
       } catch(err) {
         console.log(err);
         setAlert({

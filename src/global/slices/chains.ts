@@ -4,6 +4,7 @@ import { FirmChainConstrArgs, initFirmChain } from "../../contracts/contracts";
 import { AppThunk, RootState } from "../store";
 import { Chain } from "../types";
 import { WritableDraft } from 'immer/dist/types/types-external';
+import { getConfirmers } from "firmcontracts/interface/firmchain";
 
 export interface Chains {
   byAddress: Record<AddressStr, Chain>;
@@ -19,9 +20,13 @@ const initialState: Chains = {
 
 export const initChain = createAsyncThunk(
   'counter/initChain',
-  async (args: FirmChainConstrArgs) => {
-    const address = await initFirmChain(args);
-    return address;
+  async (args: FirmChainConstrArgs): Promise<Chain> => {
+    const chain = await initFirmChain(args);
+    const confirmers = await getConfirmers(chain);
+    return {
+      address: chain.address,
+      confirmers,
+    };
   }
 );
 
@@ -51,10 +56,7 @@ export const chainsSlice = createSlice({
       })
       .addCase(initChain.fulfilled, (state, action) => {
         state.status = 'success';
-        const newChain: Chain = {
-          address: action.payload
-        };
-        _addChain(state, newChain);
+        _addChain(state, action.payload);
       })
       .addCase(initChain.rejected, (state) => {
         state.status = 'failed';

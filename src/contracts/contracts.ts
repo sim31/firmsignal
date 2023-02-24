@@ -10,7 +10,8 @@ import {
 import { getBlockBodyId, getConfirmerSetId } from 'firmcontracts/interface/abi';
 import { createAddConfirmerOp, createAddConfirmerOps, createGenesisBlock } from 'firmcontracts/interface/firmchain';
 import { FullConfirmer } from '../global/types';
-import { createAdd } from 'typescript';
+import { createAdd, isCallChain } from 'typescript';
+import { callbackify } from 'util';
 
 let abiLib: FirmChainAbi | undefined = undefined;
 let implLib: FirmChainImpl | undefined = undefined;
@@ -99,9 +100,9 @@ export async function initFirmChain(args: FirmChainConstrArgs) {
 
   firmChains[firmChain.address] = firmChain;
 
-  const confirmers = await firmChain.getConfirmers();
-  console.log("Confirmers: ", confirmers);
-
-  return firmChain.address;
+  return firmChain;
 }
 
+export function getFirmChain(address: AddressStr) {
+  return firmChains[address];
+}
