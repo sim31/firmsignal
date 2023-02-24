@@ -139,6 +139,7 @@ export default function CreateChain() {
           msg: `Created FirmChain: ${address}`,
         });
       } catch(err) {
+        console.log(err);
         setAlert({
           status: 'error',
           msg: `Failed creating new chain. Error: ${err}`
@@ -258,7 +259,7 @@ export default function CreateChain() {
             alignItems="flex-end"
           >
             {alert.status === 'none'
-              ? null : <Alert severity={alert.status}>{alert.msg}</Alert>
+              ? null : <Alert severity={alert.status}  sx={{ width: '100%' }}>{alert.msg}</Alert>
             }
             <Button
               size="large"

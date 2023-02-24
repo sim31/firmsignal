@@ -1,4 +1,5 @@
 import { ConfirmerOutput } from "firmcontracts/interface-helpers/types";
+import { AddressStr, ConfirmerValue } from "firmcontracts/interface/types";
 
 // Blocks
 export type BlockStatus = 
@@ -31,14 +32,12 @@ export function actionHeaderStr(actionId: string, actionStatus: ActionStatus) {
 
 // Chains
 export interface Chain {
-  address: string,
+  address: AddressStr,
   name?: string,
 }
 
 // Confirmers
-export type FullConfirmerOutput = ConfirmerOutput & {
+export type FullConfirmer = ConfirmerValue & {
   name: string;
   ipnsAddr: string;
 }
-export type FullConfirmer = Omit<FullConfirmerOutput, keyof [string, number]>;
-

@@ -33,9 +33,9 @@ export default function FirmChain() {
         </Tabs>
       </Box>
       <Container component="main" maxWidth="xl" sx={{ mb: '4em', ml: '2em', mr: '2em' }}>
-        {/* <FirmState /> */}
+        <FirmState />
         {/* <FirmHistory /> */}
-        <FirmActions />
+        {/* <FirmActions /> */}
         {/* <ConfirmerHierarchy /> */}
       </Container>
     </>

@@ -1,15 +1,21 @@
 // TODO: Rename this file
 import ganache from 'ganache';
 import { ethers, utils, }  from 'ethers';
-import { Block, BlockHeader, Call, Confirmer, ConfirmerOp, ZeroId } from 'firmcontracts/interface-helpers/types'
-import { getBlockBodyId, getConfirmerSetId } from 'firmcontracts/interface-helpers/abi';
-import { createAddConfirmerOps } from 'firmcontracts/interface-helpers/firmchain';
+import {
+  Block, BlockHeader, Message, Confirmer, ConfirmerOp, ZeroId, AddressStr,
+  FirmChain, FirmChainAbi, FirmChainImpl, IFirmChain, IssuedNTT, Directory,
+  FirmChain__factory, FirmChainAbi__factory, FirmChainImpl__factory,
+  Directory__factory, IssuedNTT__factory, ZeroAddr,
+} from 'firmcontracts/interface/types'
+import { getBlockBodyId, getConfirmerSetId } from 'firmcontracts/interface/abi';
+import { createAddConfirmerOp, createAddConfirmerOps, createGenesisBlock } from 'firmcontracts/interface/firmchain';
 import { FullConfirmer } from '../global/types';
+import { createAdd } from 'typescript';
 
-type Address = string;
-
-const libraries: Record<string, ethers.Contract> = {};
-const firmChains: Record<Address, ethers.Contract> = {};
+let abiLib: FirmChainAbi | undefined = undefined;
+let implLib: FirmChainImpl | undefined = undefined;
+let directory: Directory | undefined = undefined;
+const firmChains: Record<AddressStr, FirmChain> = {};
 
 const ganacheProv = ganache.provider({
   fork: {
@@ -18,121 +24,48 @@ const ganacheProv = ganache.provider({
 });
 
 const provider = new ethers.providers.Web3Provider(ganacheProv as any);
+const signer = provider.getSigner(0);
 
-function linkLibraries(
-  {
-    bytecode,
-    linkReferences,
-  }: {
-    bytecode: string
-    linkReferences: { [fileName: string]: { [contractName: string]: { length: number; start: number }[] } }
-  },
-  libraries: { [libraryName: string]: string }
-): string {
-  Object.keys(linkReferences).forEach((fileName) => {
-    Object.keys(linkReferences[fileName]).forEach((contractName) => {
-      if (!libraries.hasOwnProperty(contractName)) {
-        throw new Error(`Missing link library name ${contractName}`)
-      }
-      const address = utils.getAddress(libraries[contractName]).toLowerCase().slice(2)
-      linkReferences[fileName][contractName].forEach(({ start: byteStart, length: byteLength }) => {
-        const start = 2 + byteStart * 2
-        const length = byteLength * 2
-        bytecode = bytecode
-          .slice(0, start)
-          .concat(address)
-          .concat(bytecode.slice(start + length, bytecode.length))
-      })
-    })
-  })
-  return bytecode
-}
+// libraryName -> library_contract_address
+type LibraryLinkRefs = Record<string, string>;
 
 async function deployAbi() {
-  const path = 'contract-artifacts/contracts/FirmChainAbi.sol/FirmChainAbi.json';
-
-  const resp = await fetch(path);
-  const obj = await resp.json();
-  const keys = Object.keys(obj);
-  if (!keys.includes('bytecode') || !keys.includes('abi')) {
-    throw new Error("Contract json has to include bytecode and abi fields")
-  }
-
-  const signer = provider.getSigner(0);
-  const factory = new ethers.ContractFactory(obj['abi'], obj['bytecode'], signer);
-
-  const contract = await factory.deploy({ gasLimit: 9552000 });
-
-  console.log("Abi contract: ", contract);
-
-  return contract;
+  const factory = new FirmChainAbi__factory(signer);
+  return (await (await factory.deploy({ gasLimit: 9552000 })).deployed());
 }
 
-
-async function deployFirmChainImpl(abiContr: ethers.Contract) {
-  const path = 'contract-artifacts/contracts/FirmChainImpl.sol/FirmChainImpl.json';
-
-  const resp = await fetch(path);
-  const obj = await resp.json();
-  const keys = Object.keys(obj);
-  if (!keys.includes('bytecode') || !keys.includes('abi')) {
-    throw new Error("Contract json has to include bytecode and abi fields")
-  }
-
-  const bytecode = linkLibraries(obj, { FirmChainAbi: abiContr.address });
-
-  const factory = new ethers.ContractFactory(obj['abi'], bytecode, provider.getSigner(0));
-
-  const contract = await factory.deploy({ gasLimit: 9552000 });
-
-  console.log("FirmChainImpl contract: ", contract);
-
-  return contract;
+async function deployFirmChainImpl(abiContr: FirmChainAbi) {
+  const factory = new FirmChainImpl__factory({
+    ["contracts/FirmChainAbi.sol:FirmChainAbi"]: abiContr.address
+  }, signer);
+  return (await (await factory.deploy({ gasLimit: 9552000 })).deployed());
 }
 
-async function deployFirmChain(impl: ethers.Contract, args: FirmChainConstrArgs) {
-  const path = 'contract-artifacts/contracts/FirmChain.sol/FirmChain.json';
+async function deployNTTContract(name: string, symbol: string, issuer: AddressStr) {
+  const factory = new IssuedNTT__factory(signer);
+  return (await (await factory.deploy(name, symbol, issuer)).deployed());
+}
 
-  const resp = await fetch(path);
-  const obj = await resp.json();
-  const keys = Object.keys(obj);
-  if (!keys.includes('bytecode') || !keys.includes('abi')) {
-    throw new Error("Contract json has to include bytecode and abi fields")
-  }
+async function deployDirectory() {
+  const factory = new Directory__factory(signer);
+  return (await (await factory.deploy({ gasLimit: 9552000 })).deployed());
+}
 
-  const bytecode = linkLibraries(obj, { FirmChainImpl: impl.address });
-
-  const factory = new ethers.ContractFactory(obj['abi'], bytecode, provider.getSigner(0));
+async function deployFirmChain(impl: FirmChainImpl, args: FirmChainConstrArgs) {
+  const factory = new FirmChain__factory({
+    ["contracts/FirmChainImpl.sol:FirmChainImpl"]: impl.address
+  }, signer);
 
   // TODO: current timestamp
-  const confs: Confirmer[] = args.confirmers.map((conf) => {
-    return { addr: conf.addr, weight: conf.weight };
-  })
+  const confOps: ConfirmerOp[] = args.confirmers.map((conf) => {
+    return createAddConfirmerOp(conf);
+  });
 
-  const confSetId = await getConfirmerSetId(confs, args.threshold);
-  const confOps: ConfirmerOp[] = createAddConfirmerOps(confs);
-
-  const calls: Call[] = []
-  const bodyId = getBlockBodyId(calls);
-
-  const header: BlockHeader = {
-    prevBlockId: ZeroId,
-    blockBodyId: bodyId,
-    confirmerSetId: confSetId,
-    timestamp: 0,
-    sigs: []
-  };
-
-  const genesisBl: Block = {
-    header,
-    calls
-  };
+  const genesisBl = await createGenesisBlock([], confOps, args.threshold);
 
   const contract = await factory.deploy(genesisBl, confOps, args.threshold, { gasLimit: 9552000 });
 
-  console.log("FirmChain contract: ", contract);
-
-  return contract;
+  return contract.deployed();
 }
 
 export type FirmChainConstrArgs = {
@@ -142,20 +75,29 @@ export type FirmChainConstrArgs = {
 
 
 export async function init() {
-  libraries['firmchainAbi'] = await deployAbi();
-  libraries['firmchainImpl'] = await deployFirmChainImpl(libraries['firmchainAbi']);
+  abiLib = await deployAbi();
+  console.log("Abi deployed: ", abiLib.address);
+  implLib = await deployFirmChainImpl(abiLib);
+  console.log("ImplLib deployed", implLib.address);
+  directory = await deployDirectory();
+  console.log("Directory deployed", directory.address);
 }
 
 export async function newFirmChain(args: FirmChainConstrArgs) {
-  if (!libraries['firmchainImpl']) {
+  if (!implLib || !directory || !abiLib) {
     await init();
   }
   const firmChain = await deployFirmChain(
-    libraries['firmchainImpl'],
+    implLib as FirmChainImpl, // If we are here, init did not throw and had to assign implLib
     args
   );
 
+  console.log("Firmchain deployed: ", firmChain);
+
   firmChains[firmChain.address] = firmChain;
+
+  const confirmers = await firmChain.getConfirmers();
+  console.log("Confirmers: ", confirmers);
 
   return firmChain.address;
 }
