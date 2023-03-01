@@ -6,7 +6,7 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import InputBase from '@mui/material/InputBase';
 import MenuItem from '@mui/material/MenuItem';
-import { css, Select } from '@mui/material';
+import { css, FormControl, IconButton, InputLabel, Select } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material';
 import { customTextWidthCss } from '../helpers/hashDisplay';
 import { useRouteMatcher } from '../global/hooks';
@@ -15,6 +15,12 @@ import { selectChainsByAddress } from '../global/slices/chains';
 import { useAppSelector, useAppDispatch, } from '../global/hooks';
 import { setLocation } from '../global/slices/appLocation';
 import { getRouteParam } from '../helpers/routes';
+import { selectAccountsByAddress, selectCurrentAccount, selectDefaultAccount, setCurrentAccount } from '../global/slices/accounts';
+import { useCallback, useEffect } from 'react';
+import { getWallets } from '../wallet/wallet';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import copy from 'copy-to-clipboard';
+import { setTimedAlert } from '../global/slices/status';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -68,41 +74,30 @@ const StyledAddr = styled(ShortenedAddr)(({ theme }) => ({
   color: theme.palette.common.white,
 }));
 
-// const defaultAddrWidth = {
-//   '--max-width': '6em',
-// } as React.CSSProperties;
-
-// const shortened = css({
-//   width: '100%',
-//   maxWidth: 'var(--max-width)',
-//   overflow: 'hidden',
-//   textOverflow: 'ellipsis',
-// })
-
-// const StyledAddrCustom = styled('div')(shortened, ({ theme }) => ({
-//   '&:hover': {
-//     backgroundColor: alpha(theme.palette.common.white, 0.25),
-//   },
-//   color: theme.palette.common.white,
-//   // shortened,
-// }));
-
-// const StyledAddr = (props: React.PropsWithChildren) => {
-//   return (
-//     <StyledAddrCustom style={defaultAddrWidth}>
-//     </StyledAddrCustom>
-//   );
-// }
-
+const StyledAddrBlack = styled(ShortenedAddr)(({ theme }) => ({
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.common.white, 0.25),
+  },
+}));
 
 export default function FirmBar() {
   const routeMatch = useRouteMatcher(rootRouteMatcher);
   const chainsByAddr = useAppSelector(selectChainsByAddress);
+  const defaultAccount = useAppSelector(selectDefaultAccount);
+  const currentAccount = useAppSelector(selectCurrentAccount);
+  const accountsByAddr = useAppSelector(selectAccountsByAddress);
+
   const dispatch = useAppDispatch();
 
-  // TODO: Redirect to default chain or something else if non existing chain id
-  // TODO: Move this to App. This should be controlled through props I think
-  const value = React.useMemo(() => {
+  useEffect(() => {
+    if (!currentAccount && defaultAccount) {
+      console.log("wallets: ", getWallets().map(w => w.mnemonic));
+      dispatch(setCurrentAccount(defaultAccount.address));      
+    }
+  }, [currentAccount, defaultAccount])
+  
+
+  const chainValue = React.useMemo(() => {
     if (!routeMatch.value) {
       return '';
     } else if (routeMatch.value.name === 'CreateChain') {
@@ -114,11 +109,27 @@ export default function FirmBar() {
     }
   }, [routeMatch, chainsByAddr]);
 
-  const handleSelectChain = React.useCallback((e: SelectChangeEvent<unknown>) => {
+  const handleSelectChain = useCallback((e: SelectChangeEvent<unknown>) => {
     const val = e.target.value as string;
     const newLoc = val === 'newChain' ? val : `/chains/${val}`;
     dispatch(setLocation(newLoc));
   }, [dispatch]);
+
+  const handleSelectAccount = useCallback((e: SelectChangeEvent<unknown>) => {
+      const val = e.target.value as string;
+      dispatch(setCurrentAccount(val));
+  }, []);
+
+  const handleAccountCopy = useCallback(
+    () => {
+      if (currentAccount) {
+        // TODO: Display notification
+        copy(currentAccount);
+        dispatch(setTimedAlert({ status: 'info', msg: 'Copied to clipboard' }, 3000));
+      }
+    },
+    [currentAccount],
+  );
 
   function renderMenuItems() {
     const items = Object.values(chainsByAddr).map((chain) => {
@@ -135,13 +146,31 @@ export default function FirmBar() {
     return items;
   }
 
-  function renderSelection(value: unknown) {
+  function renderAccountItems() {
+    const items = Object.values(accountsByAddr).map((account) => {
+      // TODO: Check if name is registered in the current chain and use that name?
+      const addr = account.address;
+      return (
+      <MenuItem value={addr} key={addr}>
+        <StyledAddrBlack>{addr}</StyledAddrBlack>
+      </MenuItem>
+      );
+    });
+    return items;
+  }
+
+  function renderChainSelection(value: unknown) {
     // const text = value === 'None' ? 'Select chain' : value as string;
     const text = value === 'newChain' ? 'New Chain' : 
       (!value || value === '' ? 'Select Chain' : 
         (chainsByAddr[value as string]?.name ? chainsByAddr[value as string]?.name : value as string)
       );
     return <StyledAddr>{text}</StyledAddr>
+  }
+
+  function renderAccountSelection(value: unknown) {
+    // const text = value === 'None' ? 'Select chain' : value as string;
+    return <StyledAddr>{value as string}</StyledAddr>
   }
 
   return (
@@ -163,9 +192,9 @@ export default function FirmBar() {
           </Typography>
           {/* <InputLabel id="demo-simple-select-label">Age</InputLabel> */}
           <StyledSelect
-            value={value}
+            value={chainValue}
             onChange={handleSelectChain}
-            renderValue={renderSelection}
+            renderValue={renderChainSelection}
             displayEmpty
           >
             <MenuItem disabled value="">
@@ -189,6 +218,21 @@ export default function FirmBar() {
               inputProps={{ 'aria-label': 'search' }}
             />
           </Search>
+
+          {/* TODO: Render in a wayt that is clearer that this is the account */}
+          <StyledSelect
+            value={currentAccount ? currentAccount : ''}
+            onChange={handleSelectAccount}
+            label='Account'
+            labelId='account-select'
+            renderValue={renderAccountSelection}
+            // displayEmpty
+          >
+            {renderAccountItems()}
+          </StyledSelect>
+          <IconButton sx={{ color: 'white' }} onClick={handleAccountCopy}>
+            <ContentCopyIcon />
+          </IconButton>
         </Toolbar>
       </AppBar>
     </Box>

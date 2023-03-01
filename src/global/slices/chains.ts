@@ -19,7 +19,7 @@ const initialState: Chains = {
 }
 
 export const initChain = createAsyncThunk(
-  'counter/initChain',
+  'chains/initChain',
   async (args: FirmChainConstrArgs): Promise<Chain> => {
     const chain = await initFirmChain(args);
     const confirmers = await getConfirmers(chain);

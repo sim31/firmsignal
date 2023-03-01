@@ -1,12 +1,15 @@
 import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
 import appLocation from './slices/appLocation';
 import chains from './slices/chains';
+import accounts from './slices/accounts';
+import status from './slices/status';
 
 export const store = configureStore({
   reducer: {
     appLocation,
     chains,
-
+    accounts,
+    status
   },
 });
 

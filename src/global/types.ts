@@ -1,4 +1,6 @@
 import { AddressStr, Confirmer, ConfirmerValue } from "firmcontracts/interface/types";
+import { Wallet } from 'ethers';
+import { AlertColor } from "@mui/material";
 
 // Blocks
 export type BlockStatus = 
@@ -41,5 +43,14 @@ export interface Chain {
   name?: string,
   confirmers: FullConfirmer[]
   threshold: number;
+}
+
+export interface Account {
+  address: AddressStr;
+}
+
+export type StatusAlert = {
+  status: AlertColor | 'none';
+  msg: string;
 }
 

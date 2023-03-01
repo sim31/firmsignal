@@ -32,15 +32,12 @@ import assert from '../helpers/assert';
 import { useAppDispatch } from '../global/hooks';
 import { initChain } from '../global/slices/chains';
 import { setLocation } from '../global/slices/appLocation';
+import { setStatusAlert, unsetAlert } from '../global/slices/status';
 // import AddressForm from './AddressForm';
 // import PaymentForm from './PaymentForm';
 // import Review from './Review';
 
 type ConfirmerEntry = FullConfirmer & { id: string };
-type Alert = {
-  status: AlertColor | 'none';
-  msg: string;
-}
 
 export default function CreateChain() {
   const dispatch = useAppDispatch();
@@ -48,11 +45,6 @@ export default function CreateChain() {
   const [name, setName] = useState('');
   const [threshold, setThreshold] = useState<number | undefined>(undefined);
   const newConfirmerId = useIncrementingId('confirmer'); 
-  const [alert, setAlert] = useState<Alert>({
-    status: 'none',
-    msg: '',
-  });
-  const [alertMsg, setAlertMsg] = useState<string>('');
 
   const newConfirmerEntry = useCallback(() => {
     return {
@@ -136,21 +128,21 @@ export default function CreateChain() {
       // TODO: Show error if not enough information (like threshold not set)
       try {
         // TODO: Spinner
-        setAlert({
+        dispatch(setStatusAlert({
           status: 'info',
           msg: 'Creating firmchain...',
-        });
+        }));
         const args = {
           confirmers: Object.values(confirmers),
           threshold: threshold ?? 0,
           name,
         };
         const chain = await dispatch(initChain(args)).unwrap();
-
+        dispatch(unsetAlert());
         dispatch(setLocation(`/chains/${chain.address}`));
       } catch(err) {
         console.log(err);
-        setAlert({
+        setStatusAlert({
           status: 'error',
           msg: `Failed creating new chain. Error: ${err}`
         });
@@ -267,9 +259,6 @@ export default function CreateChain() {
             justifyContent="flex-end"
             alignItems="flex-end"
           >
-            {alert.status === 'none'
-              ? null : <Alert severity={alert.status}  sx={{ width: '100%' }}>{alert.msg}</Alert>
-            }
             <Button
               size="large"
               color="primary"

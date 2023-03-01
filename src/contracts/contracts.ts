@@ -21,7 +21,7 @@ const firmChains: Record<AddressStr, FirmChain> = {};
 const ganacheProv = ganache.provider({
   fork: {
     network: 'goerli'
-  }
+  },
 });
 
 const provider = new ethers.providers.Web3Provider(ganacheProv as any);

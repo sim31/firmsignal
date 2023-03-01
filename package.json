@@ -17,6 +17,7 @@
     "@types/node": "^16.18.12",
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",
+    "copy-to-clipboard": "^3.3.3",
     "ethers": "^5.7.2",
     "feather-route-matcher": "^4.0.0",
     "firmcontracts": "github:sim31/firmcontracts#master",

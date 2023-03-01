@@ -11,6 +11,7 @@ import { selectChain } from '../global/slices/chains';
 import NotFoundError from './Errors/NotFoundError';
 import { useEffect } from 'react';
 import { getRouteParam } from '../helpers/routes';
+import { shortAddress } from '../helpers/hashDisplay';
 
 export default function FirmChain() {
   const routeMatch = useRouteMatcher(chainRouteMatcher);
@@ -44,7 +45,7 @@ export default function FirmChain() {
   return (
     <>
       <Typography variant="h4" align="center" sx={{ mt: '0.5em', mb: 0, paddingBottom: 0 }}>
-        Some Fractal
+        {chain.name ?? `Chain ${shortAddress(chain.address)}`}
       </Typography>
       {/* TODO: confirmations modal (shows which hierarchy of confirmers confirming selected block) */}
       {/* TODO: Remove browse buttons. It might be hard to implement and I think actions page will provide enough historic information for now */}
