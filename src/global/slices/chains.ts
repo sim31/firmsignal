@@ -1,10 +1,10 @@
 import { createAsyncThunk, createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AddressStr } from "firmcontracts/interface/types";
+import { AddressStr, ConfirmerValue } from "firmcontracts/interface/types";
 import { FirmChainConstrArgs, initFirmChain } from "../../contracts/contracts";
 import { AppThunk, RootState } from "../store";
-import { Chain } from "../types";
+import { Chain, FullConfirmer } from "../types";
 import { WritableDraft } from 'immer/dist/types/types-external';
-import { getConfirmers } from "firmcontracts/interface/firmchain";
+import { getConfirmers } from 'firmcontracts/interface/firmchain';
 
 export interface Chains {
   byAddress: Record<AddressStr, Chain>;
@@ -23,9 +23,15 @@ export const initChain = createAsyncThunk(
   async (args: FirmChainConstrArgs): Promise<Chain> => {
     const chain = await initFirmChain(args);
     const confirmers = await getConfirmers(chain);
+    const threshold = await chain.getThreshold();
+    const fullConfirmers: (ConfirmerValue | FullConfirmer)[] =
+      confirmers.map((conf) =>
+        args.confirmers.find(c => c.addr === conf.addr) ?? conf);
     return {
       address: chain.address,
-      confirmers,
+      confirmers: fullConfirmers,
+      threshold,
+      name: args.name?.length ? args.name : undefined,
     };
   }
 );
@@ -70,7 +76,7 @@ export const { addChain } = chainsSlice.actions;
 export const selectDefaultChain = (state: RootState) => state.chains.defaultChain;
 export const selectChainsByAddress = (state: RootState) => state.chains.byAddress;
 // Use like this: const chain = useAppSelector(state => selectChain(state, "aaa"))
-export const selectChain = (state: RootState, address: AddressStr) =>
+export const selectChain = (state: RootState, address: AddressStr): Chain | undefined =>
   state.chains.byAddress[address];
 
 

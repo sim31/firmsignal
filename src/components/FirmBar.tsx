@@ -144,7 +144,9 @@ export default function FirmBar() {
   function renderSelection(value: unknown) {
     // const text = value === 'None' ? 'Select chain' : value as string;
     const text = value === 'newChain' ? 'New Chain' : 
-      (!value || value === '' ? 'Select Chain' : value as string);
+      (!value || value === '' ? 'Select Chain' : 
+        (chainsByAddr[value as string]?.name ? chainsByAddr[value as string]?.name : value as string)
+      );
     return <StyledAddr>{text}</StyledAddr>
   }
 

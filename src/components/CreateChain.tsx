@@ -37,7 +37,6 @@ import { setLocation } from '../global/slices/appLocation';
 // import Review from './Review';
 
 type ConfirmerEntry = FullConfirmer & { id: string };
-type ConfirmerProp = Exclude<keyof ConfirmerEntry, 'id'>;
 type Alert = {
   status: AlertColor | 'none';
   msg: string;
@@ -86,8 +85,11 @@ export default function CreateChain() {
 
   const onThresholdChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      if (typeof event.target.value === 'number' && event.target.value >= 0) {
-        setThreshold(event.target.value);
+      const n = parseInt(event.target.value);
+      if (!isNaN(n) && n >= 0) {
+        setThreshold(n);
+      } else {
+        setThreshold(undefined);
       }
     }, [setThreshold]
   );
@@ -141,6 +143,7 @@ export default function CreateChain() {
         const args = {
           confirmers: Object.values(confirmers),
           threshold: threshold ?? 0,
+          name,
         };
         const chain = await dispatch(initChain(args)).unwrap();
 

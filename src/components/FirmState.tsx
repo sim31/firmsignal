@@ -4,8 +4,20 @@ import BalancesTable from './BalancesTable';
 import BlockCard from './BlockCard';
 import ConfirmerTable from './ConfirmerTable';
 import StateInfoCard from './StateInfoCard';
+import { selectChain } from '../global/slices/chains';
+import { useAppSelector, useRouteMatcher } from '../global/hooks';
+import { rootRouteMatcher } from '../global/routes';
+import NotFoundError from './Errors/NotFoundError';
 
 export default function FirmState() {
+  const routeMatch = useRouteMatcher(rootRouteMatcher);
+  const address = routeMatch.params ? routeMatch.params['chainId'] : '';
+  const chain = useAppSelector(state => selectChain(state, address));
+
+  if (!chain) {
+    return <NotFoundError />
+  }
+
   return (
     <Grid container spacing={6} sx={{ mt: '0.1em' }}>
       <Grid item xs={12}>
@@ -48,9 +60,9 @@ export default function FirmState() {
       <Grid item xs="auto">
         <StateInfoCard title="Confirmers">
           <Typography>
-            Threshold: 4 / 6
+            Threshold: {chain.threshold}
           </Typography>
-          <ConfirmerTable />
+          <ConfirmerTable confirmers={chain.confirmers}/>
         </StateInfoCard>
       </Grid>
       <Grid item xs="auto">

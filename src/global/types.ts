@@ -29,15 +29,17 @@ export function actionHeaderStr(actionId: string, actionStatus: ActionStatus) {
   return `#${actionId} ${actionTagsStr(actionStatus)}`;
 }
 
+// Confirmers
+export type FullConfirmer = ConfirmerValue & {
+  name?: string;
+  ipnsAddr?: string;
+}
+
 // Chains
 export interface Chain {
   address: AddressStr,
   name?: string,
-  confirmers: ConfirmerValue[]
+  confirmers: FullConfirmer[]
+  threshold: number;
 }
 
-// Confirmers
-export type FullConfirmer = ConfirmerValue & {
-  name: string;
-  ipnsAddr: string;
-}

@@ -72,9 +72,11 @@ async function deployFirmChain(impl: FirmChainImpl, args: FirmChainConstrArgs) {
   return contract.deployed();
 }
 
+// TODO: specify type as well
 export type FirmChainConstrArgs = {
   confirmers: FullConfirmer[],
   threshold: number,
+  name?: string,
   genesisBl?: BlockValue,
 };
 

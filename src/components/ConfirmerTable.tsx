@@ -9,23 +9,7 @@ import Paper from '@mui/material/Paper';
 import { Link } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { shortenedAddr } from '../helpers/hashDisplay';
-
-function createData(
-  address: string,
-  name: string,
-  weight: number,
-) {
-  return { address, name, weight };
-}
-
-
-const rows = [
-  createData('0xb3a3762db7ce0544b58569d5bd35a4b9284a6e96', 'Jerry', 2),
-  createData('0x199d5ed7f45f4ee35960cf22eade2076e95b253f', 'Tadas', 1),
-  createData('0x2e08451b79a01cda253811e45719ceb42640c20d', 'Tom', 1),
-  createData('0x4fabb145d64652a948d72533023f6e7a623c7c53', 'Dan', 1),
-  createData('0x4fabb145d64652a948d72533023f6e7a623c7c53', '', 1),
-];
+import { FullConfirmer } from '../global/types';
 
 const AccountCell = styled(TableCell)({
   width: '21em',
@@ -34,7 +18,11 @@ const AccountCell = styled(TableCell)({
   textOverflow: 'ellipsis',
 });
 
-export default function ConfirmerTable() {
+type OwnProps = {
+  confirmers: FullConfirmer[];
+};
+
+export default function ConfirmerTable({ confirmers }: OwnProps) {
 
   function renderHeadCell(content: string) {
     return (
@@ -53,15 +41,15 @@ export default function ConfirmerTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
+          {confirmers.map((conf) => (
             <TableRow
-              key={row.address}
+              key={conf.addr}
               sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
             >
               <AccountCell component="th" scope="row">
-                <Link href="https://test">{row.name && row.name.length ? row.name : row.address}</Link>
+                <Link href="https://test">{conf.name?.length ? conf.name : conf.addr}</Link>
               </AccountCell>
-              <TableCell align="right">{row.weight}</TableCell>
+              <TableCell align="right">{conf.weight}</TableCell>
             </TableRow>
           ))}
         </TableBody>
