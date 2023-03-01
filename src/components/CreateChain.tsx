@@ -103,9 +103,9 @@ export default function CreateChain() {
       updateConfirmers(confirmers => {
         if (property === 'weight') {
           const weight = parseInt(value);
-          confirmers[confirmerId][property] = weight;
+          confirmers[confirmerId]![property] = weight;
         } else {
-          confirmers[confirmerId][property] = value.toString();
+          confirmers[confirmerId]![property] = value.toString();
         }
       });
     },
@@ -159,7 +159,6 @@ export default function CreateChain() {
     [confirmers, threshold],
   )
   
-
 
   function renderConfirmers() {
     return Object.values(confirmers).map((confirmer) => {
@@ -253,7 +252,7 @@ export default function CreateChain() {
             label="Threshold"
             variant="standard"
             sx={{ width: '6em' }}
-            value={threshold}
+            value={threshold ? threshold : ''}
             onChange={onThresholdChange}
           />
 

@@ -14,6 +14,7 @@ import { rootRouteMatcher } from '../global/routes';
 import { selectChainsByAddress } from '../global/slices/chains';
 import { useAppSelector, useAppDispatch, } from '../global/hooks';
 import { setLocation } from '../global/slices/appLocation';
+import { getRouteParam } from '../helpers/routes';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -107,14 +108,7 @@ export default function FirmBar() {
     } else if (routeMatch.value.name === 'CreateChain') {
       return 'newChain';
     } else if (routeMatch.value.name === 'FirmChain') {
-      if (routeMatch.params && Object.keys(routeMatch.params).includes('chainId')) {
-        const address = routeMatch.params['chainId'];
-        if (Object.keys(chainsByAddr).includes(address)) {
-          return address;
-        } else {
-          return '';
-        }
-      }
+      return getRouteParam(routeMatch, 'chainId', '');
     } else {
       return '';
     }

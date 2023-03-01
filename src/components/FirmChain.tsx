@@ -4,13 +4,42 @@ import FirmHistory from './FirmHistory';
 import FirmActions from './FirmActions';
 import FirmState from './FirmState';
 import ConfirmerHierarchy from './ConfirmerHierarchy';
+import { useAppDispatch, useAppSelector, useRouteMatcher } from '../global/hooks';
+import { chainRouteMatcher, rootRouteMatcher } from '../global/routes';
+import { setLocation } from '../global/slices/appLocation';
+import { selectChain } from '../global/slices/chains';
+import NotFoundError from './Errors/NotFoundError';
+import { useEffect } from 'react';
+import { getRouteParam } from '../helpers/routes';
 
 export default function FirmChain() {
-  const [tab, setTab] = React.useState('state');
+  const routeMatch = useRouteMatcher(chainRouteMatcher);
+  const rootRouteMatch = useRouteMatcher(rootRouteMatcher);
+  const tabValue = getRouteParam(rootRouteMatch, 'tab', '');
+  const address = getRouteParam(routeMatch, 'chainId', '');
+  const chain = useAppSelector(state => selectChain(state, address));
+  const dispatch = useAppDispatch();
+
+  function setTab(tabValue: string) {
+    dispatch(setLocation(`/chains/${address}/${tabValue}`));
+  }
+
+  useEffect(() => {
+    if (!tabValue.length) {
+      setTab('overview');
+    }
+  }, [])
+  
 
   const handleTabChange = React.useCallback((event: React.SyntheticEvent, newValue: string) => {
     setTab(newValue);
   }, []);
+  
+  const Component = routeMatch.value;
+
+  if (!chain) {
+    return <NotFoundError />
+  }
 
   return (
     <>
@@ -22,21 +51,18 @@ export default function FirmChain() {
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         {/* TODO: Make sure all fit on smaller screens (introduce scrollbar (will have to remove centered) on smaller viewports) */}
-        <Tabs value={tab} onChange={handleTabChange} centered>
-          <Tab label="Overview" value="state" />
+        <Tabs value={tabValue.length ? tabValue : 'overview'} onChange={handleTabChange} centered>
+          <Tab label="Overview" value="overview" />
           <Tab label="Directory" value="dir" />
-          <Tab label="Actions" value="proposals" />
-          <Tab label="Confirmers" value="children" />
+          <Tab label="Messages" value="messages" />
+          <Tab label="Confirmers" value="confirmers" />
           {/* <Tab label="History" value="blocks" /> */}
           {/* <Tab label="Propose" value="createProp" />
           <Tab label="Propose 2" value="createProp" /> */}
         </Tabs>
       </Box>
       <Container component="main" maxWidth="xl" sx={{ mb: '4em', ml: '2em', mr: '2em' }}>
-        <FirmState />
-        {/* <FirmHistory /> */}
-        {/* <FirmActions /> */}
-        {/* <ConfirmerHierarchy /> */}
+        <Component chain={chain} />
       </Container>
     </>
   );

@@ -2,6 +2,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { TreeItem, TreeView } from "@mui/lab";
 import { Box, Container, Grid } from '@mui/material';
+import { Chain } from '../global/types';
 
 export type Node = {
   name: string;
@@ -9,10 +10,10 @@ export type Node = {
 }
 
 export type ConfirmerHierarchyProps = {
-  rootNode: Node;
+  chain: Chain;
 }
 
-export default function ConfirmerHierarchy() {
+export default function ConfirmerHierarchy({ chain }: ConfirmerHierarchyProps) {
   return (
     <Grid container alignItems="center" justifyContent="center" sx={{ mt: 4 }}>
       <Grid item>

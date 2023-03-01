@@ -8,16 +8,13 @@ import { selectChain } from '../global/slices/chains';
 import { useAppSelector, useRouteMatcher } from '../global/hooks';
 import { rootRouteMatcher } from '../global/routes';
 import NotFoundError from './Errors/NotFoundError';
+import { Chain } from '../global/types';
 
-export default function FirmState() {
-  const routeMatch = useRouteMatcher(rootRouteMatcher);
-  const address = routeMatch.params ? routeMatch.params['chainId'] : '';
-  const chain = useAppSelector(state => selectChain(state, address));
+type OwnProps = {
+  chain: Chain;
+}
 
-  if (!chain) {
-    return <NotFoundError />
-  }
-
+export default function FirmState({ chain }: OwnProps) {
   return (
     <Grid container spacing={6} sx={{ mt: '0.1em' }}>
       <Grid item xs={12}>

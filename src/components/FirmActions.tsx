@@ -12,6 +12,7 @@ import ActionCreateCard from './ActionCreateCard';
 import SetDirectoryForm from './SetDirectoryForm';
 import UpdateConfirmersForm from './UpdateConfirmersForm';
 import ConfirmForm from './ConfirmForm';
+import { Chain } from '../global/types';
 
 const BlockTabs = styled(Tabs)({
   '& .MuiButtonBase-root': {
@@ -20,6 +21,7 @@ const BlockTabs = styled(Tabs)({
 });
 
 export type FirmActionsProps = {
+  chain: Chain;
   title?: string;
   renderConfirm?: boolean;
 };

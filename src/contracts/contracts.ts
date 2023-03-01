@@ -13,9 +13,9 @@ import { FullConfirmer } from '../global/types';
 import { createAdd, isCallChain } from 'typescript';
 import { callbackify } from 'util';
 
-let abiLib: FirmChainAbi | undefined = undefined;
-let implLib: FirmChainImpl | undefined = undefined;
-let directory: Directory | undefined = undefined;
+let abiLib: Promise<FirmChainAbi>;
+let implLib: Promise<FirmChainImpl>;
+let directory: Promise<Directory>
 const firmChains: Record<AddressStr, FirmChain> = {};
 
 const ganacheProv = ganache.provider({
@@ -27,8 +27,7 @@ const ganacheProv = ganache.provider({
 const provider = new ethers.providers.Web3Provider(ganacheProv as any);
 const signer = provider.getSigner(0);
 
-// libraryName -> library_contract_address
-type LibraryLinkRefs = Record<string, string>;
+init();
 
 async function deployAbi() {
   const factory = new FirmChainAbi__factory(signer);
@@ -80,21 +79,31 @@ export type FirmChainConstrArgs = {
   genesisBl?: BlockValue,
 };
 
-export async function init() {
-  abiLib = await deployAbi();
-  console.log("Abi deployed: ", abiLib.address);
-  implLib = await deployFirmChainImpl(abiLib);
-  console.log("ImplLib deployed", implLib.address);
-  directory = await deployDirectory();
-  console.log("Directory deployed", directory.address);
+async function init() {
+  abiLib = deployAbi();
+  const abiC = await abiLib;
+  console.log("Abi deployed: ", abiC.address);
+  implLib = deployFirmChainImpl(abiC);
+  const implLibC = await abiLib;
+  console.log("ImplLib deployed", implLibC.address);
+  directory = deployDirectory();
+  const directoryC = await directory;
+  console.log("Directory deployed", directoryC.address);
+}
+
+async function waitForInit() {
+  return {
+    abiLib: await abiLib,
+    implLib: await implLib,
+    directory: await directory,
+  };
 }
 
 export async function initFirmChain(args: FirmChainConstrArgs) {
-  if (!implLib || !directory || !abiLib) {
-    await init();
-  }
+  const cs = await waitForInit();
+  
   const firmChain = await deployFirmChain(
-    implLib as FirmChainImpl, // If we are here, init did not throw and had to assign implLib
+    cs.implLib,
     args
   );
 

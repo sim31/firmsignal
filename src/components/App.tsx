@@ -27,7 +27,7 @@ function App() {
       if (!defaultChain) {
         dispatch(setLocation('/newChain'));
       } else {
-        dispatch(setLocation(`/chain/${defaultChain}`))
+        dispatch(setLocation(`/chains/${defaultChain}`))
       }
     }
   }, [routeMatch, dispatch, defaultChain])
