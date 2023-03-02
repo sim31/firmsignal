@@ -1,14 +1,14 @@
 // TODO: Rename this file
 import ganache from 'ganache';
-import { ethers, utils, }  from 'ethers';
+import { BytesLike, ethers, utils, }  from 'ethers';
 import {
   Block, BlockHeader, Message, Confirmer, ConfirmerOp, ZeroId, AddressStr,
   FirmChain, FirmChainAbi, FirmChainImpl, IFirmChain, IssuedNTT, Directory,
   FirmChain__factory, FirmChainAbi__factory, FirmChainImpl__factory,
-  Directory__factory, IssuedNTT__factory, ZeroAddr, BlockValue,
+  Directory__factory, IssuedNTT__factory, ZeroAddr, BlockValue, GenesisBlockValue,
 } from 'firmcontracts/interface/types'
 import { getBlockBodyId, getConfirmerSetId } from 'firmcontracts/interface/abi';
-import { createAddConfirmerOp, createAddConfirmerOps, createGenesisBlock } from 'firmcontracts/interface/firmchain';
+import { createAddConfirmerOp, createAddConfirmerOps, createGenesisBlock, createGenesisBlockVal } from 'firmcontracts/interface/firmchain';
 import { FullConfirmer } from '../global/types';
 import { createAdd, isCallChain } from 'typescript';
 import { callbackify } from 'util';
@@ -63,7 +63,7 @@ async function deployFirmChain(impl: FirmChainImpl, args: FirmChainConstrArgs) {
 
   let genesisBl = args.genesisBl;
   if (!genesisBl) {
-    genesisBl = await createGenesisBlock([], confOps, args.threshold);
+    genesisBl = await createGenesisBlockVal([], confOps, args.threshold);
   }
 
   const contract = await factory.deploy(genesisBl, confOps, args.threshold, { gasLimit: 9552000 });
@@ -76,7 +76,7 @@ export type FirmChainConstrArgs = {
   confirmers: FullConfirmer[],
   threshold: number,
   name?: string,
-  genesisBl?: BlockValue,
+  genesisBl?: GenesisBlockValue,
 };
 
 async function init() {

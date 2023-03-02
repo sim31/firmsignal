@@ -142,10 +142,11 @@ export default function CreateChain() {
         dispatch(setLocation(`/chains/${chain.address}`));
       } catch(err) {
         console.log(err);
-        setStatusAlert({
+        const msg = typeof err === 'object' && err && 'message' in err ? err.message : err;
+        dispatch(setStatusAlert({
           status: 'error',
-          msg: `Failed creating new chain. Error: ${err}`
-        });
+          msg: `Failed creating new chain. Error: ${msg}`
+        }));
       }
     },
     [confirmers, threshold],

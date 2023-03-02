@@ -3,6 +3,7 @@ import { AddressStr } from "firmcontracts/interface/types";
 import { getWallets } from "../../wallet/wallet";
 import { RootState } from "../store";
 import { Account } from "../types";
+import { normalizeHexStr } from "firmcontracts/interface/abi";
 
 export interface Accounts {
   byAddress: Record<AddressStr, Account>;
@@ -11,9 +12,12 @@ export interface Accounts {
 
 const initialState: Accounts = {
   byAddress: getWallets().reduce((prevVal, wallet) => { 
+    const normAddr = normalizeHexStr(wallet.address);
     return {
       ...prevVal,
-      [wallet.address]: { address: wallet.address }
+      [normAddr]: {
+        address: normAddr,
+      }
     };
   }, {}),
 };
