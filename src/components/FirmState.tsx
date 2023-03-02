@@ -4,17 +4,54 @@ import BalancesTable from './BalancesTable';
 import BlockCard from './BlockCard';
 import ConfirmerTable from './ConfirmerTable';
 import StateInfoCard from './StateInfoCard';
-import { selectChain } from '../global/slices/chains';
+import { getLatestBlocks, selectChain } from '../global/slices/chains';
 import { useAppSelector, useRouteMatcher } from '../global/hooks';
 import { rootRouteMatcher } from '../global/routes';
 import NotFoundError from './Errors/NotFoundError';
 import { Chain } from '../global/types';
+import { EmotionJSX } from '@emotion/react/types/jsx-namespace';
+import { getBlockId } from 'firmcontracts/interface/abi';
+import { BlockIdStr, OptExtendedBlockValue, OptExtendedBlockValueN } from 'firmcontracts/interface/types';
+import { useMemo } from 'react';
+import { TupleType } from 'typescript';
 
 type OwnProps = {
   chain: Chain;
 }
 
+function renderBlockList(chain: Chain) {
+  const blocks = getLatestBlocks(chain, 6);
+  return blocks.map(bl => {
+  })
+}
+
 export default function FirmState({ chain }: OwnProps) {
+  const blocks = chain.blocks;
+
+  const blocksAndIds = useMemo(() => {
+    const bls = getLatestBlocks(chain, 6);
+    return bls.map<[BlockIdStr, OptExtendedBlockValueN]>((bl) => [getBlockId(bl.header), bl]);
+  }, [blocks]);
+
+  function renderBlockList() {
+    return blocksAndIds.map(([id, bl], index) => {
+      const ts = bl.header.timestamp;
+      const date = new Date(parseInt(ts.toString()) * 1000);
+      <Grid item key={id}>
+        <BlockCard 
+          num={bl.num}
+          id={id}
+          date={date.toLocaleString()}
+          confirmations={1}
+          threshold={4}
+          totalWeight={6}
+          tags={['proposed']}
+        />
+      </Grid>
+    });
+
+  }
+
   return (
     <Grid container spacing={6} sx={{ mt: '0.1em' }}>
       <Grid item xs={12}>

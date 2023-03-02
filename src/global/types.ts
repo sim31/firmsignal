@@ -1,4 +1,4 @@
-import { AddressStr, Confirmer, ConfirmerValue } from "firmcontracts/interface/types";
+import { AddressStr, ConfirmerValue, BlockIdStr, OptExtendedBlockValue, OptExtendedBlockValueN } from "firmcontracts/interface/types";
 import { Wallet } from 'ethers';
 import { AlertColor } from "@mui/material";
 
@@ -40,6 +40,9 @@ export type FullConfirmer = ConfirmerValue & {
 // Chains
 export interface Chain {
   address: AddressStr,
+  genesisBlockId: BlockIdStr;
+  headBlockId: BlockIdStr;
+  blocks: Record<BlockIdStr, OptExtendedBlockValueN>;
   name?: string,
   confirmers: FullConfirmer[]
   threshold: number;

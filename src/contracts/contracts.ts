@@ -68,7 +68,9 @@ async function deployFirmChain(impl: FirmChainImpl, args: FirmChainConstrArgs) {
 
   const contract = await factory.deploy(genesisBl, confOps, args.threshold, { gasLimit: 9552000 });
 
-  return contract.deployed();
+  genesisBl.contract = contract.address;
+
+  return { contract: await contract.deployed(), genesisBl };
 }
 
 // TODO: specify type as well
@@ -102,16 +104,16 @@ async function waitForInit() {
 export async function initFirmChain(args: FirmChainConstrArgs) {
   const cs = await waitForInit();
   
-  const firmChain = await deployFirmChain(
+  const depl = await deployFirmChain(
     cs.implLib,
     args
   );
 
-  console.log("Firmchain deployed: ", firmChain);
+  console.log("Firmchain deployed: ", depl.contract);
 
-  firmChains[firmChain.address] = firmChain;
+  firmChains[depl.contract.address] = depl.contract;
 
-  return firmChain;
+  return depl;
 }
 
 export function getFirmChain(address: AddressStr) {
