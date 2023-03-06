@@ -7,7 +7,7 @@ import ConfirmerHierarchy from './ConfirmerHierarchy';
 import { useAppDispatch, useAppSelector, useRouteMatcher } from '../global/hooks';
 import { chainRouteMatcher, rootRouteMatcher } from '../global/routes';
 import { setLocation } from '../global/slices/appLocation';
-import { selectChain } from '../global/slices/chains';
+import { selectChain, selectChainState } from '../global/slices/chains';
 import NotFoundError from './Errors/NotFoundError';
 import { useEffect } from 'react';
 import { getRouteParam } from '../helpers/routes';
@@ -19,6 +19,8 @@ export default function FirmChain() {
   const tabValue = getRouteParam(rootRouteMatch, 'tab', '');
   const address = getRouteParam(routeMatch, 'chainId', '');
   const chain = useAppSelector(state => selectChain(state, address));
+  const chainState = useAppSelector(state =>
+    chain && selectChainState(state, chain.address));
   const dispatch = useAppDispatch();
 
   function setTab(tabValue: string) {
@@ -45,7 +47,7 @@ export default function FirmChain() {
   return (
     <>
       <Typography variant="h4" align="center" sx={{ mt: '0.5em', mb: 0, paddingBottom: 0 }}>
-        {chain.name ?? `Chain ${shortAddress(chain.address)}`}
+        {chainState?.name ?? `Chain ${shortAddress(chain.address)}`}
       </Typography>
       {/* TODO: confirmations modal (shows which hierarchy of confirmers confirming selected block) */}
       {/* TODO: Remove browse buttons. It might be hard to implement and I think actions page will provide enough historic information for now */}

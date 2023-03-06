@@ -25,7 +25,6 @@ import Radio from '@mui/material/Radio';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import { useImmer } from 'use-immer';
-import { FullConfirmer } from '../global/types';
 import useIncrementingId from '../hooks/useIncrementingId';
 import { stringify } from 'querystring';
 import assert from '../helpers/assert';
@@ -33,11 +32,16 @@ import { useAppDispatch } from '../global/hooks';
 import { initChain } from '../global/slices/chains';
 import { setLocation } from '../global/slices/appLocation';
 import { setStatusAlert, unsetAlert } from '../global/slices/status';
+import { Account, AddressStr, ConfirmerValue } from 'firmcontracts/interface/types';
 // import AddressForm from './AddressForm';
 // import PaymentForm from './PaymentForm';
 // import Review from './Review';
 
-type ConfirmerEntry = FullConfirmer & { id: string };
+type ConfirmerEntry = ConfirmerValue & {
+  id: string,
+  name?: string,
+  ipnsAddr?: string,
+};
 
 export default function CreateChain() {
   const dispatch = useAppDispatch();
@@ -132,8 +136,17 @@ export default function CreateChain() {
           status: 'info',
           msg: 'Creating firmchain...',
         }));
+        const accounts: Record<AddressStr, Account> = {};
+        for (const conf of Object.values(confirmers)) {
+          accounts[conf.addr] = {
+            address: conf.addr,
+            name: conf.name,
+            ipnsAddress: conf.ipnsAddr
+          };
+        }
         const args = {
           confirmers: Object.values(confirmers),
+          accounts,
           threshold: threshold ?? 0,
           name,
         };

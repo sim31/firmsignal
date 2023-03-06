@@ -10,6 +10,7 @@ import { styled } from '@mui/material/styles';
 import { Stack } from '@mui/material';
 import { BlockTags, blockTagsStr } from '../global/types';
 import ShortenedBlockId from './ShortenedBlockId';
+import { Message } from 'firmcontracts/interface/types';
 
 export type BlockCardProps = {
   num: number;
@@ -20,6 +21,7 @@ export type BlockCardProps = {
   tags: BlockTags;
   totalWeight: number;
   confirmed?: boolean;
+  messages: Message[],
 }
 
 // Number
@@ -45,15 +47,17 @@ export default function BlockCard(props: BlockCardProps) {
         <Typography variant="h5" component="div">
           {props.date}          
         </Typography>
-        <Box sx={{ mb: 1.5 }}>
-          <Typography component="span" color="text.secondary">
-            Confirmations:  
-          </Typography>
-          <span> </span>
-          <Typography component="span" color={color}>
-            {props.confirmations}/{props.totalWeight}{status}
-          </Typography>
-        </Box>
+        { !Number.isNaN(props.confirmations) && !Number.isNaN(props.totalWeight) &&
+          <Box sx={{ mb: 1.5 }}>
+            <Typography component="span" color="text.secondary">
+              Confirmations:  
+            </Typography>
+            <span> </span>
+            <Typography component="span" color={color}>
+              {props.confirmations}/{props.totalWeight}{status}
+            </Typography>
+          </Box>
+        }
 
         <Stack direction="row" spacing={1}>
           <Typography variant="body2">
@@ -67,7 +71,7 @@ export default function BlockCard(props: BlockCardProps) {
 
         <Stack direction="row" spacing={1}>
           <Typography variant="body2">
-            Actions: 2
+            Messages: {props.messages.length}
           </Typography>
           <Button size='small' sx={{ padding: 0 }}>
             Show

@@ -1,4 +1,4 @@
-import { AddressStr, ConfirmerValue, BlockIdStr, OptExtendedBlockValue, OptExtendedBlockValueN } from "firmcontracts/interface/types";
+import { AddressStr, ConfirmerValue, BlockIdStr, OptExtendedBlockValue, Account } from "firmcontracts/interface/types";
 import { Wallet } from 'ethers';
 import { AlertColor } from "@mui/material";
 
@@ -31,25 +31,11 @@ export function actionHeaderStr(actionId: string, actionStatus: ActionStatus) {
   return `#${actionId} ${actionTagsStr(actionStatus)}`;
 }
 
-// Confirmers
-export type FullConfirmer = ConfirmerValue & {
-  name?: string;
-  ipnsAddr?: string;
-}
-
 // Chains
 export interface Chain {
   address: AddressStr,
   genesisBlockId: BlockIdStr;
   headBlockId: BlockIdStr;
-  blocks: Record<BlockIdStr, OptExtendedBlockValueN>;
-  name?: string,
-  confirmers: FullConfirmer[]
-  threshold: number;
-}
-
-export interface Account {
-  address: AddressStr;
 }
 
 export type StatusAlert = {

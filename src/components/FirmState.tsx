@@ -4,99 +4,87 @@ import BalancesTable from './BalancesTable';
 import BlockCard from './BlockCard';
 import ConfirmerTable from './ConfirmerTable';
 import StateInfoCard from './StateInfoCard';
-import { getLatestBlocks, selectChain } from '../global/slices/chains';
-import { useAppSelector, useRouteMatcher } from '../global/hooks';
+import { selectChain, selectSlice } from '../global/slices/chains';
+import { useAppSelector, useCurrentChainRoute, useRouteMatcher } from '../global/hooks';
 import { rootRouteMatcher } from '../global/routes';
 import NotFoundError from './Errors/NotFoundError';
 import { Chain } from '../global/types';
 import { EmotionJSX } from '@emotion/react/types/jsx-namespace';
 import { getBlockId } from 'firmcontracts/interface/abi';
-import { BlockIdStr, OptExtendedBlockValue, OptExtendedBlockValueN } from 'firmcontracts/interface/types';
+import { BlockIdStr, OptExtendedBlockValue, } from 'firmcontracts/interface/types';
 import { useMemo } from 'react';
 import { TupleType } from 'typescript';
+import { blocksWithConfirmInfo, withConfirmInfo } from 'firmcontracts/interface/firmchain';
 
-type OwnProps = {
-  chain: Chain;
-}
-
-function renderBlockList(chain: Chain) {
-  const blocks = getLatestBlocks(chain, 6);
-  return blocks.map(bl => {
-  })
-}
-
-export default function FirmState({ chain }: OwnProps) {
-  const blocks = chain.blocks;
+export default function FirmState() {
+  const { chain, routeMatch } = useCurrentChainRoute();
+  const latestBls = useAppSelector(
+    state => chain && selectSlice(state, chain.address, -6));
 
   const blocksAndIds = useMemo(() => {
-    const bls = getLatestBlocks(chain, 6);
-    return bls.map<[BlockIdStr, OptExtendedBlockValueN]>((bl) => [getBlockId(bl.header), bl]);
-  }, [blocks]);
+    if (latestBls) {
+      const bls = new Array<OptExtendedBlockValue>();
+      if (latestBls[0]?.state.blockNum === 0) {
+        bls.push(latestBls[0]);
+      }
+      bls.push(...blocksWithConfirmInfo(latestBls))
+      bls.reverse();
+
+      return bls?.map<[BlockIdStr, OptExtendedBlockValue]>((bl) => [getBlockId(bl.header), bl]);
+    } else {
+      return undefined;
+    }
+  }, [latestBls]);
+
+  const headBl = blocksAndIds && blocksAndIds[0] && blocksAndIds[0][1];
+  const state = headBl?.state;
 
   function renderBlockList() {
-    return blocksAndIds.map(([id, bl], index) => {
-      const ts = bl.header.timestamp;
-      const date = new Date(parseInt(ts.toString()) * 1000);
-      <Grid item key={id}>
-        <BlockCard 
-          num={bl.num}
-          id={id}
-          date={date.toLocaleString()}
-          confirmations={1}
-          threshold={4}
-          totalWeight={6}
-          tags={['proposed']}
-        />
-      </Grid>
-    });
-
+    if (blocksAndIds) {
+      return blocksAndIds.map(([id, bl], index) => {
+        const ts = bl.header.timestamp;
+        const date = new Date(parseInt(ts.toString()) * 1000);
+        return (
+          <Grid item key={id}>
+            <BlockCard 
+              num={state?.blockNum ?? Number.NaN}
+              id={id}
+              date={date.toLocaleString()}
+              confirmations={bl.state.confirmCount ?? 0}
+              threshold={state?.confirmerSet.threshold ?? Number.NaN}
+              totalWeight={bl.state.totalWeight ?? Number.NaN}
+              messages={bl.msgs}
+              // TODO: implement block tags
+              tags={['proposed']}
+            />
+          </Grid>
+        );
+      });
+    } else {
+      return [];
+    }
   }
 
   return (
     <Grid container spacing={6} sx={{ mt: '0.1em' }}>
       <Grid item xs={12}>
         <Grid container direction="row" spacing={6}>
-          <Grid item>
-            <BlockCard 
-              num={6}
-              id={'1b79dabklfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0'}
-              date={'2023-02-11 13:01'}
-              confirmations={1}
-              threshold={4}
-              totalWeight={6}
-              tags={['proposed']}
-            />
-          </Grid>
-          <Grid item>
-            <BlockCard 
-              num={6}
-              id={'fk29c86dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0'}
-              date={'2023-02-11 12:03'}
-              confirmations={3}
-              threshold={4}
-              totalWeight={6}
-              tags={['proposed']}
-            />
-          </Grid>
-          <Grid item>
-            <BlockCard 
-              num={5}
-              id={'9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0'}
-              date={'2023-02-10 12:03'}
-              confirmations={4}
-              threshold={4}
-              totalWeight={6}
-              tags={['consensus', 'view']}
-            />
-          </Grid>
+          {renderBlockList()}
         </Grid>
       </Grid>
       <Grid item xs="auto">
         <StateInfoCard title="Confirmers">
           <Typography>
-            Threshold: {chain.threshold}
+            Threshold: {state?.confirmerSet.threshold ?? '-'}
           </Typography>
-          <ConfirmerTable confirmers={chain.confirmers}/>
+          {
+            state?.confirmerSet.confirmers ?
+            <ConfirmerTable
+              confirmers={state.confirmerSet.confirmers}
+              accounts={state.accounts || {}}
+            />
+            : '-'
+          }
         </StateInfoCard>
       </Grid>
       <Grid item xs="auto">

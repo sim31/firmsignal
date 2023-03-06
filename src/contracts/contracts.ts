@@ -5,11 +5,10 @@ import {
   Block, BlockHeader, Message, Confirmer, ConfirmerOp, ZeroId, AddressStr,
   FirmChain, FirmChainAbi, FirmChainImpl, IFirmChain, IssuedNTT, Directory,
   FirmChain__factory, FirmChainAbi__factory, FirmChainImpl__factory,
-  Directory__factory, IssuedNTT__factory, ZeroAddr, BlockValue, GenesisBlockValue,
+  Directory__factory, IssuedNTT__factory, ZeroAddr, BlockValue, GenesisBlockValue, Account, ConfirmerValue, ConfirmerOpValue,
 } from 'firmcontracts/interface/types'
 import { getBlockBodyId, getConfirmerSetId } from 'firmcontracts/interface/abi';
 import { createAddConfirmerOp, createAddConfirmerOps, createGenesisBlock, createGenesisBlockVal } from 'firmcontracts/interface/firmchain';
-import { FullConfirmer } from '../global/types';
 import { createAdd, isCallChain } from 'typescript';
 import { callbackify } from 'util';
 
@@ -57,7 +56,7 @@ async function deployFirmChain(impl: FirmChainImpl, args: FirmChainConstrArgs) {
   }, signer);
 
   // TODO: current timestamp
-  const confOps: ConfirmerOp[] = args.confirmers.map((conf) => {
+  const confOps: ConfirmerOpValue[] = args.confirmers.map((conf) => {
     return createAddConfirmerOp(conf);
   });
 
@@ -73,9 +72,10 @@ async function deployFirmChain(impl: FirmChainImpl, args: FirmChainConstrArgs) {
   return { contract: await contract.deployed(), genesisBl };
 }
 
-// TODO: specify type as well
 export type FirmChainConstrArgs = {
-  confirmers: FullConfirmer[],
+  confirmers: ConfirmerValue[],
+  // TODO: Create accounts specified
+  accounts: Record<AddressStr, Account>;
   threshold: number,
   name?: string,
   genesisBl?: GenesisBlockValue,

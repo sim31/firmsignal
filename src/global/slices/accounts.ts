@@ -1,8 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AddressStr } from "firmcontracts/interface/types";
+import { AddressStr, Account } from "firmcontracts/interface/types";
 import { getWallets } from "../../wallet/wallet";
 import { RootState } from "../store";
-import { Account } from "../types";
 import { normalizeHexStr } from "firmcontracts/interface/abi";
 
 export interface Accounts {
@@ -11,7 +10,7 @@ export interface Accounts {
 }
 
 const initialState: Accounts = {
-  byAddress: getWallets().reduce((prevVal, wallet) => { 
+  byAddress: getWallets().reduce<Accounts['byAddress']>((prevVal, wallet) => { 
     const normAddr = normalizeHexStr(wallet.address);
     return {
       ...prevVal,

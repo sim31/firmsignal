@@ -9,7 +9,7 @@ import Paper from '@mui/material/Paper';
 import { Link } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { shortenedAddr } from '../helpers/hashDisplay';
-import { FullConfirmer } from '../global/types';
+import { Account, AddressStr, ConfirmerValue } from 'firmcontracts/interface/types';
 
 const AccountCell = styled(TableCell)({
   width: '21em',
@@ -19,15 +19,19 @@ const AccountCell = styled(TableCell)({
 });
 
 type OwnProps = {
-  confirmers: FullConfirmer[];
+  confirmers: ConfirmerValue[],
+  accounts: Record<AddressStr, Account>,
 };
 
-export default function ConfirmerTable({ confirmers }: OwnProps) {
+export default function ConfirmerTable({ confirmers, accounts }: OwnProps) {
 
-  function renderHeadCell(content: string) {
-    return (
-      <TableCell><b>{content}</b></TableCell>
-    )
+  function renderName(conf: ConfirmerValue) {
+    const account = accounts[conf.addr];
+    if (account?.name?.length) {
+      return account.name;
+    } else {
+      return conf.addr;
+    }
   }
 
   return (
@@ -47,7 +51,9 @@ export default function ConfirmerTable({ confirmers }: OwnProps) {
               sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
             >
               <AccountCell component="th" scope="row">
-                <Link href="https://test">{conf.name?.length ? conf.name : conf.addr}</Link>
+                <Link href="https://test">
+                  {renderName(conf)}
+                </Link>
               </AccountCell>
               <TableCell align="right">{conf.weight}</TableCell>
             </TableRow>
