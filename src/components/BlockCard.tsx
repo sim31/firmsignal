@@ -7,21 +7,21 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { customTextWidthCss } from '../helpers/hashDisplay';
 import { styled } from '@mui/material/styles';
-import { Stack } from '@mui/material';
+import { IconButton, Stack } from '@mui/material';
 import { BlockTags, blockTagsStr } from '../global/types';
 import ShortenedBlockId from './ShortenedBlockId';
-import { Message } from 'firmcontracts/interface/types';
+import { Message, OptExtendedBlockValue } from 'firmcontracts/interface/types';
+import { useCallback, useMemo } from 'react';
+import { getBlockId } from 'firmcontracts/interface/abi';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import copy from 'copy-to-clipboard';
+import { setTimedAlert } from '../global/slices/status';
+import { useAppDispatch } from '../global/hooks';
+import { timestampToDateStr } from '../helpers/date';
 
 export type BlockCardProps = {
-  num: number;
-  id: string;
-  date: string;
-  confirmations: number;
-  threshold: number;
+  block: OptExtendedBlockValue;
   tags: BlockTags;
-  totalWeight: number;
-  confirmed?: boolean;
-  messages: Message[],
 }
 
 // Number
@@ -30,31 +30,58 @@ export type BlockCardProps = {
 // Confirmers
 // Proposals passed
 
-export default function BlockCard(props: BlockCardProps) {
-  const color = props.confirmations >= props.threshold ? 'green' : 'red';
-  const status = props.confirmations >= props.threshold ? ' (finalized) ' : '';
+export default function BlockCard({ block, tags }: BlockCardProps) {
+  const dispatch = useAppDispatch();
+  const state = block.state;
+
+  const [color, status] = useMemo(() => {
+    if (tags[0] === 'past' || tags[0] === 'consensus') {
+      return ['green', '(finalized)'];
+    } else if (tags[0] === 'genesis') {
+      return [undefined, undefined];
+    } else if (tags[0] === 'proposed') {
+      return ['orange', ''];
+    } else {
+      return ['red', ''];
+    }
+  }, [tags]);
+
+  // TODO: Check if current user account is confirmer and confirmed this block
+  const confirmed = false;
+
+  const dateStr = useMemo(() => {
+    return timestampToDateStr(block.header.timestamp);    
+  }, [block]);
+
+  const handleIdCopy = useCallback(
+    () => {
+      copy(block.state.blockId);
+      dispatch(setTimedAlert({ status: 'info', msg: 'Copied to clipboard' }, 3000));
+    },
+    [],
+  );
 
   return (
     <Card raised sx={{ width: '21em' }}>
       <CardContent>
         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-          {`#${props.num} `}
-          {blockTagsStr(props.tags)}
+          {`#${state.blockNum} `}
+          {blockTagsStr(tags)}
         </Typography>
         {/* <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
           {`${props.id}`}
         </Typography> */}
         <Typography variant="h5" component="div">
-          {props.date}          
+          {dateStr}
         </Typography>
-        { !Number.isNaN(props.confirmations) && !Number.isNaN(props.totalWeight) &&
+        { status && color &&
           <Box sx={{ mb: 1.5 }}>
             <Typography component="span" color="text.secondary">
               Confirmations:  
             </Typography>
             <span> </span>
             <Typography component="span" color={color}>
-              {props.confirmations}/{props.totalWeight}{status}
+              {state.confirmCount}/{state.totalWeight}{status}
             </Typography>
           </Box>
         }
@@ -63,15 +90,15 @@ export default function BlockCard(props: BlockCardProps) {
           <Typography variant="body2">
             id: 
           </Typography>
-          <ShortenedBlockId variant="body2">{props.id}</ShortenedBlockId>
-          <Button size='small' sx={{ padding: 0 }}>
+          <ShortenedBlockId variant="body2">{block.state.blockId}</ShortenedBlockId>
+          <Button size='small' sx={{ padding: 0 }} onClick={handleIdCopy}>
             Copy
           </Button>
         </Stack>
 
         <Stack direction="row" spacing={1}>
           <Typography variant="body2">
-            Messages: {props.messages.length}
+            Messages: {block.msgs.length}
           </Typography>
           <Button size='small' sx={{ padding: 0 }}>
             Show
@@ -80,8 +107,8 @@ export default function BlockCard(props: BlockCardProps) {
 
       </CardContent>
       <CardActions>
-        {props.tags[1] === 'view' ? null : <Button>Browse</Button>}
-        {props.confirmed || props.tags[0] === 'orphaned' ? null : <Button>Confirm</Button>}
+        {/* {props.tags[1] === 'view' ? null : <Button>Browse</Button>} */}
+        {confirmed || tags[0] === 'orphaned' ? null : <Button>Confirm</Button>}
       </CardActions>
     </Card>
   );

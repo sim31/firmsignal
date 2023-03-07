@@ -101,9 +101,23 @@ async function waitForInit() {
   };
 }
 
+export function verifyArgs(args: FirmChainConstrArgs) {
+  if (Number.isNaN(args.threshold) || args.threshold <= 0) {
+    throw new Error('Threshold has to be number > 0');
+  }
+
+  for (const conf of args.confirmers) {
+    if (Number.isNaN(conf.weight) || conf.weight < 0) {
+      throw new Error('Confirmer weight has to be a number > 0');
+    }
+  }
+}
+
 export async function initFirmChain(args: FirmChainConstrArgs) {
+  verifyArgs(args);
+
   const cs = await waitForInit();
-  
+
   const depl = await deployFirmChain(
     cs.implLib,
     args

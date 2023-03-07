@@ -8,7 +8,7 @@ import { selectChain, selectSlice } from '../global/slices/chains';
 import { useAppSelector, useCurrentChainRoute, useRouteMatcher } from '../global/hooks';
 import { rootRouteMatcher } from '../global/routes';
 import NotFoundError from './Errors/NotFoundError';
-import { Chain } from '../global/types';
+import { BlockTags, Chain } from '../global/types';
 import { EmotionJSX } from '@emotion/react/types/jsx-namespace';
 import { getBlockId } from 'firmcontracts/interface/abi';
 import { BlockIdStr, OptExtendedBlockValue, } from 'firmcontracts/interface/types';
@@ -18,10 +18,11 @@ import { blocksWithConfirmInfo, withConfirmInfo } from 'firmcontracts/interface/
 
 export default function FirmState() {
   const { chain, routeMatch } = useCurrentChainRoute();
+  // TODO: Move into 3 hook calls below into a hook and use in "Messages" as well
   const latestBls = useAppSelector(
     state => chain && selectSlice(state, chain.address, -6));
 
-  const blocksAndIds = useMemo(() => {
+  const filledBlocks = useMemo(() => {
     if (latestBls) {
       const bls = new Array<OptExtendedBlockValue>();
       if (latestBls[0]?.state.blockNum === 0) {
@@ -30,32 +31,60 @@ export default function FirmState() {
       bls.push(...blocksWithConfirmInfo(latestBls))
       bls.reverse();
 
-      return bls?.map<[BlockIdStr, OptExtendedBlockValue]>((bl) => [getBlockId(bl.header), bl]);
+      return bls;
     } else {
       return undefined;
     }
   }, [latestBls]);
 
-  const headBl = blocksAndIds && blocksAndIds[0] && blocksAndIds[0][1];
+  const blockTags: BlockTags[] | undefined = useMemo(() => {
+    const tags = filledBlocks?.map<BlockTags>(bl => ['proposed']);
+    if (tags && filledBlocks) {
+      let headIndex: number | undefined;
+      for (const [index, bl] of filledBlocks.entries()) {
+        if (bl.state.blockNum === 0) {
+          tags[index] = ['genesis'];
+        } else if (bl.state.confirmCount && bl.state.thresholdThis) {
+          if (bl.state.confirmCount >= bl.state.thresholdThis) {
+            if (!headIndex) {
+              headIndex = index;
+              tags[index] = ['consensus'];
+            } else {
+              const headBlockNum = filledBlocks[headIndex]?.state.blockNum;
+              if (headBlockNum && headBlockNum > bl.state.blockNum) {
+                tags[index] = ['past'];
+              } else if (headBlockNum) {
+                tags[headIndex] = tags[index] = ['byzantine'];
+              } else {
+                // Should never happen
+                throw new Error('Invalid index set');
+              }
+            }
+          } else {
+            if (headIndex) {
+              tags[index] = ['orphaned'];
+            } else {
+              tags[index] = ['proposed'];
+            }
+          }
+        }
+      }
+    }
+    return tags;
+  }, [filledBlocks])
+
+  const headBl = filledBlocks && filledBlocks[0];
   const state = headBl?.state;
 
   function renderBlockList() {
-    if (blocksAndIds) {
-      return blocksAndIds.map(([id, bl], index) => {
-        const ts = bl.header.timestamp;
-        const date = new Date(parseInt(ts.toString()) * 1000);
+    if (filledBlocks && blockTags) {
+      return filledBlocks.map((bl, index) => {
         return (
-          <Grid item key={id}>
+          <Grid item key={bl.state.blockId}>
             <BlockCard 
-              num={state?.blockNum ?? Number.NaN}
-              id={id}
-              date={date.toLocaleString()}
-              confirmations={bl.state.confirmCount ?? 0}
-              threshold={state?.confirmerSet.threshold ?? Number.NaN}
-              totalWeight={bl.state.totalWeight ?? Number.NaN}
-              messages={bl.msgs}
+              block={bl}
               // TODO: implement block tags
-              tags={['proposed']}
+              tags={blockTags[index] ?? ['proposed']}
             />
           </Grid>
         );

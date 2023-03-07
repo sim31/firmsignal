@@ -37,7 +37,7 @@ export const selectStatusAlert = (state: RootState) => state.status.alert;
 const selectAlertNum = (state: RootState) => state.status.alertNum;
 
 export const setTimedAlert =
-  (alert: StatusAlert, ms: number): AppThunk =>
+  (alert: StatusAlert, ms: number = 3000): AppThunk =>
   async (dispatch, getState) => {
     const num = selectAlertNum(getState());
     dispatch(setStatusAlert(alert));

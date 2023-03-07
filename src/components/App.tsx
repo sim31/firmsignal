@@ -44,7 +44,10 @@ function App() {
         { alert.status !== 'none' ?
           <Alert
             severity={alert.status}
-            sx={{ width: '100%', justifyContent: 'center', alignContent: 'center' }}
+            sx={{
+              width: '100%', justifyContent: 'center', alignContent: 'center',
+              margin: 0,
+            }}
           >
             {alert.msg}
           </Alert>

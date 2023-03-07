@@ -106,11 +106,14 @@ export const selectChainsByAddress = (state: RootState) => state.chains.byAddres
 export const selectChain = (state: RootState, address: AddressStr): Chain | undefined =>
   state.chains.byAddress[address];
 
-
 export const selectHead = (state: RootState, chainAddr: AddressStr) => {
   const chain = state.chains.byAddress[chainAddr];
   return chain && chain.blocks.byId[chain.headBlockId];
 }
+
+export const selectChainName = (state: RootState, address: AddressStr): string | undefined =>
+  (selectHead(state, address))?.state.name;
+
 
 export const selectChainState = (state: RootState, chainAddr: AddressStr) => {
   return (selectHead(state, chainAddr))?.state;

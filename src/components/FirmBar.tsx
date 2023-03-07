@@ -9,9 +9,9 @@ import MenuItem from '@mui/material/MenuItem';
 import { css, FormControl, IconButton, InputLabel, Select } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material';
 import { customTextWidthCss } from '../helpers/hashDisplay';
-import { useRouteMatcher } from '../global/hooks';
+import { useCurrentChainRoute, useRouteMatcher } from '../global/hooks';
 import { rootRouteMatcher } from '../global/routes';
-import { selectChainsByAddress } from '../global/slices/chains';
+import { selectChainName, selectChainsByAddress } from '../global/slices/chains';
 import { useAppSelector, useAppDispatch, } from '../global/hooks';
 import { setLocation } from '../global/slices/appLocation';
 import { getRouteParam } from '../helpers/routes';
@@ -86,6 +86,10 @@ export default function FirmBar() {
   const defaultAccount = useAppSelector(selectDefaultAccount);
   const currentAccount = useAppSelector(selectCurrentAccount);
   const accountsByAddr = useAppSelector(selectAccountsByAddress);
+  const chainId = getRouteParam(routeMatch, 'chainId', '');
+  const name = useAppSelector(
+    state => selectChainName(state, chainId)
+  );
 
   const dispatch = useAppDispatch();
 
@@ -103,7 +107,7 @@ export default function FirmBar() {
     } else if (routeMatch.value.name === 'CreateChain') {
       return 'newChain';
     } else if (routeMatch.value.name === 'FirmChain') {
-      return getRouteParam(routeMatch, 'chainId', '');
+      return chainId;
     } else {
       return '';
     }
@@ -123,7 +127,6 @@ export default function FirmBar() {
   const handleAccountCopy = useCallback(
     () => {
       if (currentAccount) {
-        // TODO: Display notification
         copy(currentAccount);
         dispatch(setTimedAlert({ status: 'info', msg: 'Copied to clipboard' }, 3000));
       }
@@ -133,7 +136,7 @@ export default function FirmBar() {
 
   function renderMenuItems() {
     const items = Object.values(chainsByAddr).map((chain) => {
-      const title = chain.name ?? chain.address;
+      const title = name ?? chain.address;
       return (
         <MenuItem value={chain.address} key={chain.address}>{title}</MenuItem>
       );
@@ -161,10 +164,16 @@ export default function FirmBar() {
 
   function renderChainSelection(value: unknown) {
     // const text = value === 'None' ? 'Select chain' : value as string;
-    const text = value === 'newChain' ? 'New Chain' : 
-      (!value || value === '' ? 'Select Chain' : 
-        (chainsByAddr[value as string]?.name ? chainsByAddr[value as string]?.name : value as string)
-      );
+    let text = '';
+    if (value === 'newChain') {
+      text = 'New Chain';
+    } else if (!value || value === '') {
+      text = 'Select Chain';
+    } else if (name) {
+      text = name;
+    } else {
+      text = value as string;
+    }
     return <StyledAddr>{text}</StyledAddr>
   }
 

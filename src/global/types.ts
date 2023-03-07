@@ -8,6 +8,8 @@ export type BlockStatus =
   | 'past'      // If this block is finalized but not the latest
   | 'proposed'  // If this still has the chance to become finalized
   | 'orphaned'  // If alternative block at this height was finalized
+  | 'genesis'   // If this is a genesis block
+  | 'byzantine' // If this block is finalized but there's another finalized block
 
 export type BlockTags = [BlockStatus, 'view'] | [BlockStatus];
 
