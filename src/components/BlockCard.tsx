@@ -14,9 +14,8 @@ import { Message, OptExtendedBlockValue } from 'firmcontracts/interface/types';
 import { useCallback, useMemo } from 'react';
 import { getBlockId } from 'firmcontracts/interface/abi';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import copy from 'copy-to-clipboard';
 import { setTimedAlert } from '../global/slices/status';
-import { useAppDispatch } from '../global/hooks';
+import { useAppDispatch, useCopyCallback } from '../global/hooks';
 import { timestampToDateStr } from '../helpers/date';
 
 export type BlockCardProps = {
@@ -53,13 +52,7 @@ export default function BlockCard({ block, tags }: BlockCardProps) {
     return timestampToDateStr(block.header.timestamp);    
   }, [block]);
 
-  const handleIdCopy = useCallback(
-    () => {
-      copy(block.state.blockId);
-      dispatch(setTimedAlert({ status: 'info', msg: 'Copied to clipboard' }, 3000));
-    },
-    [],
-  );
+  const handleIdCopy = useCopyCallback(dispatch, block.state.blockId);
 
   return (
     <Card raised sx={{ width: '21em' }}>

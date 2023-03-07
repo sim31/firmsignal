@@ -57,7 +57,7 @@ export default function FirmChain() {
         <Tabs value={tabValue.length ? tabValue : 'overview'} onChange={handleTabChange} centered>
           <Tab label="Overview" value="overview" />
           <Tab label="Directory" value="dir" />
-          <Tab label="Messages" value="messages" />
+          <Tab label="Proposals" value="proposals" />
           <Tab label="Confirmers" value="confirmers" />
           {/* <Tab label="History" value="blocks" /> */}
           {/* <Tab label="Propose" value="createProp" />
@@ -65,7 +65,7 @@ export default function FirmChain() {
         </Tabs>
       </Box>
       <Container component="main" maxWidth="xl" sx={{ mb: '4em', ml: '2em', mr: '2em' }}>
-        <Component chain={chain} />
+        <Component />
       </Container>
     </>
   );

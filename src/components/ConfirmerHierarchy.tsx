@@ -13,7 +13,7 @@ export type ConfirmerHierarchyProps = {
   chain: Chain;
 }
 
-export default function ConfirmerHierarchy({ chain }: ConfirmerHierarchyProps) {
+export default function ConfirmerHierarchy() {
   return (
     <Grid container alignItems="center" justifyContent="center" sx={{ mt: 4 }}>
       <Grid item>

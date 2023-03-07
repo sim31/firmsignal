@@ -9,7 +9,7 @@ import MenuItem from '@mui/material/MenuItem';
 import { css, FormControl, IconButton, InputLabel, Select } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material';
 import { customTextWidthCss } from '../helpers/hashDisplay';
-import { useCurrentChainRoute, useRouteMatcher } from '../global/hooks';
+import { useCopyCallback, useCurrentChainRoute, useRouteMatcher } from '../global/hooks';
 import { rootRouteMatcher } from '../global/routes';
 import { selectChainName, selectChainsByAddress } from '../global/slices/chains';
 import { useAppSelector, useAppDispatch, } from '../global/hooks';
@@ -124,15 +124,7 @@ export default function FirmBar() {
       dispatch(setCurrentAccount(val));
   }, []);
 
-  const handleAccountCopy = useCallback(
-    () => {
-      if (currentAccount) {
-        copy(currentAccount);
-        dispatch(setTimedAlert({ status: 'info', msg: 'Copied to clipboard' }, 3000));
-      }
-    },
-    [currentAccount],
-  );
+  const handleAccountCopy = useCopyCallback(dispatch, currentAccount);
 
   function renderMenuItems() {
     const items = Object.values(chainsByAddr).map((chain) => {
