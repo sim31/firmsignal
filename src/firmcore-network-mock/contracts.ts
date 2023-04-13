@@ -45,11 +45,6 @@ async function deployNTTContract(name: string, symbol: string, issuer: AddressSt
   return (await (await factory.deploy(name, symbol, issuer)).deployed());
 }
 
-async function deployDirectory() {
-  const factory = new Directory__factory(signer);
-  return (await (await factory.deploy({ gasLimit: 9552000 })).deployed());
-}
-
 async function deployFirmChain(impl: FirmChainImpl, args: FirmChainConstrArgs) {
   const factory = new FirmChain__factory({
     ["contracts/FirmChainImpl.sol:FirmChainImpl"]: impl.address
@@ -62,7 +57,7 @@ async function deployFirmChain(impl: FirmChainImpl, args: FirmChainConstrArgs) {
 
   let genesisBl = args.genesisBl;
   if (!genesisBl) {
-    genesisBl = await createGenesisBlockVal([], confOps, args.threshold);
+    genesisBl = await createGenesisBlockVal([], ZeroId, confOps, args.threshold);
   }
 
   const contract = await factory.deploy(genesisBl, confOps, args.threshold, { gasLimit: 9552000 });
@@ -72,14 +67,6 @@ async function deployFirmChain(impl: FirmChainImpl, args: FirmChainConstrArgs) {
   return { contract: await contract.deployed(), genesisBl };
 }
 
-export type FirmChainConstrArgs = {
-  confirmers: ConfirmerValue[],
-  // TODO: Create accounts specified
-  accounts: Record<AddressStr, Account>;
-  threshold: number,
-  name?: string,
-  genesisBl?: GenesisBlockValue,
-};
 
 async function init() {
   abiLib = deployAbi();
@@ -88,16 +75,12 @@ async function init() {
   implLib = deployFirmChainImpl(abiC);
   const implLibC = await abiLib;
   console.log("ImplLib deployed", implLibC.address);
-  directory = deployDirectory();
-  const directoryC = await directory;
-  console.log("Directory deployed", directoryC.address);
 }
 
 async function waitForInit() {
   return {
     abiLib: await abiLib,
     implLib: await implLib,
-    directory: await directory,
   };
 }
 

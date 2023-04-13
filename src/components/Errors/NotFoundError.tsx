@@ -6,7 +6,7 @@ export default function NotFoundError() {
   const path = useAppSelector(selectLocation).pathname;
 
   return (
-    <Container component="main" maxWidth="md" sx={{ mb: 4 }}>
+    <Container component="main" sx={{ mb: 4 }}>
       <Paper elevation={8} sx={{ my: { xs: 3, md: 6 }, p: { xs: 2, md: 3 } }}>
         <Typography component="h1" align="center">
           Not found

@@ -45,9 +45,7 @@ type ConfirmerEntry = ConfirmerValue & {
 
 export default function CreateChain() {
   const dispatch = useAppDispatch();
-  const [scType, setScType] = useState('fs-only');
   const [name, setName] = useState('');
-  const [threshold, setThreshold] = useState<number | undefined>(undefined);
   const newConfirmerId = useIncrementingId('confirmer'); 
 
   const newConfirmerEntry = useCallback(() => {
@@ -67,28 +65,10 @@ export default function CreateChain() {
     }
   });
 
-  const onScTypeChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setScType(event.target.value);
-    },
-    [setScType]
-  );
-
   const onNameChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
   }, [setName]);
-
-  const onThresholdChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const n = parseInt(event.target.value);
-      if (!isNaN(n) && n >= 0) {
-        setThreshold(n);
-      } else {
-        setThreshold(undefined);
-      }
-    }, [setThreshold]
-  );
 
   const onConfirmerChange = useCallback(
     (
@@ -147,7 +127,6 @@ export default function CreateChain() {
         const args = {
           confirmers: Object.values(confirmers),
           accounts,
-          threshold: threshold ?? 0,
           name,
         };
         const chain = await dispatch(initChain(args)).unwrap();
@@ -162,7 +141,7 @@ export default function CreateChain() {
         }));
       }
     },
-    [confirmers, threshold],
+    [confirmers],
   )
   
 
@@ -194,15 +173,6 @@ export default function CreateChain() {
             onChange={e => onConfirmerChange(e.target.value, 'addr', confirmer.id)}
           />
           <TextField
-            required
-            type="number"
-            label="Weight"
-            variant="standard"
-            sx={{ width: '12em' }}
-            value={confirmer.weight >= 0 && !isNaN(confirmer.weight) ? confirmer.weight : ''}
-            onChange={e => onConfirmerChange(e.target.value, 'weight', confirmer.id)}
-          />
-          <TextField
             label="IPNS address"
             variant="standard"
             fullWidth
@@ -232,34 +202,6 @@ export default function CreateChain() {
             sx={{ maxWidth: '14em' }}
             value={name}
             onChange={onNameChange}
-          />
-          <FormControl>
-            <FormLabel>
-              Smart Contract
-              {/* <Typography component="h2" variant="h6">Smart contract</Typography> */}
-            </FormLabel>
-            <RadioGroup
-              row
-              name="radio-buttons-group"
-              value={scType}
-              onChange={onScTypeChange}
-            >
-              <FormControlLabel value="fs-only" control={<Radio />} label="Filesystem smart contract" />
-              <FormControlLabel value="fs-token" control={<Radio />} label="Filesystem and token" />
-            </RadioGroup>
-          </FormControl>
-
-
-          {/* TODO: Add helper text to say what you're setting */}
-          <TextField
-            required
-            type="number"
-            id="threshold"
-            label="Threshold"
-            variant="standard"
-            sx={{ width: '6em' }}
-            value={threshold ? threshold : ''}
-            onChange={onThresholdChange}
           />
 
           {renderConfirmers()}
