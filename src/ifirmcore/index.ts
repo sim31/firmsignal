@@ -1,4 +1,5 @@
 import { Required } from 'utility-types';
+import { IWallet } from '../iwallet';
 
 export type Address = string;
 export type BlockId = string;
@@ -35,9 +36,17 @@ export interface Chain {
   //getBlock(id: BlockId): Promise<Blo
 }
 
+export interface ConfirmationStatus {
+  currentWeight: number,
+  potentialWeight: number,
+  threshold: number,
+  final: boolean;
+}
+
 export interface ChainState {
   confirmerSet: ConfirmerSet;
-  confirmations: Address[];
+  confirmations: () => Promise<Address[]>;
+  confirmationStatus: () => Promise<ConfirmationStatus>;
 }
 
 export interface RespectChain extends Chain {
@@ -46,7 +55,7 @@ export interface RespectChain extends Chain {
 }
 
 export interface DirectoryState extends ChainState {
-  getDirectoryId(): Promise<IPFSLink>;
+  directoryId(): Promise<IPFSLink | undefined>;
   // TODO: Function to get the actual directory
 }
 
@@ -55,21 +64,19 @@ export type ExtAccountMap = Record<PlatformId, PlatformAccountId>;
 export interface Account {
   id: AccountId;
   address?: Address;
-  metadataId?: IPFSLink;
   name?: string;
-  ipnsAddress?: IPNSAddress;
   extAccounts: ExtAccountMap;
 }
 
 export interface FirmAccountSystemState extends ChainState {
   accountById(id: AccountId): Promise<Account | undefined>;  
-  accountByAddress(address: Address): Promise<Address | undefined>;
+  accountByAddress(address: Address): Promise<Account | undefined>;
 }
 
 export interface RespectState extends FirmAccountSystemState {
-  getBalance(id: AccountId): Promise<TokenBalance>;
-  getBalanceByAddr(address: Address): Promise<TokenBalance>;
-  getTotalSupply(): Promise<TokenBalance>;
+  balance(id: AccountId): Promise<TokenBalance>;
+  balanceByAddr(address: Address): Promise<TokenBalance>;
+  totalSupply(): Promise<TokenBalance>;
 }
 
 // TODO: types for making actions on a chain
@@ -85,15 +92,21 @@ export interface EFBreakoutResults extends FractalBreakoutResult {
 export interface EFChainState extends RespectState, DirectoryState {
   // Active delegates
   // Week index 0-3, with 0 being the newest
-  getDelegate(weekIndex: number, roomNumber: number): Promise<AccountId>;
-  getDelegates(weekIndex: number): Promise<AccountId[]>;
+  delegate(weekIndex: number, roomNumber: number): Promise<AccountId | undefined>;
+  delegates(weekIndex: number): Promise<AccountId[] | undefined>;
 }
 
-export interface EFSubmitResultsMsg {
+export interface Msg {
+  readonly name: string;
+}
+
+export interface EFSubmitResultsMsg extends Msg {
+  readonly name: 'efSubmitResults';
   results: EFBreakoutResults[];
 }
 
-export interface SetDirMsg {
+export interface SetDirMsg extends Msg {
+  readonly name: 'setDir';
   dir: IPFSLink;
 }
 
@@ -112,20 +125,24 @@ export interface RemoveConfirmerOp {
   opId: 'remove';
 }
 
-export interface UpdateConfirmersMsg {
+export interface UpdateConfirmersMsg extends Msg {
+  readonly name: 'updateConfirmers';
   ops: ConfirmerOp[];
   threshold: number;
 }
 
-export interface CreateAccountMsg {
+export interface CreateAccountMsg extends Msg {
+  readonly name: 'createAccount';
   account: Account;
 }
 
-export interface RemoveAccountMsg {
+export interface RemoveAccountMsg extends Msg {
+  readonly name: 'removeAccount';
   accountId: AccountId;
 }
 
-export interface UpdateAccountMsg {
+export interface UpdateAccountMsg extends Msg {
+  readonly name: 'updateAccount';
   accountId: AccountId;
   newAccount: Account;
 }
@@ -147,8 +164,11 @@ export interface EFBlock {
 
 export interface EFBlockBuilder {
   // Creates an publishes the block
-  createBlock(prevBlock: EFBlock, msgs: EFMsg[]): EFBlock;
-  // TODO: Version of create block when only prevBlockId is provided
+  createBlock(prevBlockId: BlockId, msgs: EFMsg[]): Promise<EFBlock>;
+}
+
+export interface BlockConfirmer {
+  confirm(blockId: BlockId): Promise<void>;
 }
 
 export type AccountWithAddress = Required<Account, 'address'>;
@@ -165,13 +185,14 @@ export interface EFChain extends RespectChain {
   constructorArgs: EFConstructorArgs;
   builder: EFBlockBuilder;
 
-  blockById(id: BlockId | undefined): Promise<EFBlock>;
+  blockById(id: BlockId): Promise<EFBlock | undefined>;
   // TODO:
   // blockByNum(num: number): Promise<EFBlock>;
   // TODO: slices
 }
 
-export interface IFirmCore {
+export interface IFirmCore<SigType> {
   createEFChain(args: EFConstructorArgs): Promise<EFChain>;
   getChain(address: Address): Promise<EFChain | undefined>;
+  createWalletConfirmer(wallet: IWallet<SigType>): Promise<BlockConfirmer>;
 }
