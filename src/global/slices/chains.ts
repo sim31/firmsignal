@@ -2,7 +2,7 @@ import { createAsyncThunk, createSelector, createSlice, PayloadAction } from "@r
 import { 
   AddressStr, ConfirmerValue, BlockIdStr, OptExtendedBlock, OptExtendedBlockValue, Account,
 } from "firmcontracts/interface/types";
-import { FirmChainConstrArgs, initFirmChain } from "../../firmcore-network-mock/contracts";
+import { FirmChainConstrArgs, initFirmChain } from "../../contracts/contracts";
 import { AppThunk, RootState } from "../store";
 import { Chain,} from "../types";
 import { WritableDraft } from 'immer/dist/types/types-external';

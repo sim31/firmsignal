@@ -6,7 +6,7 @@
       "dom.iterable",
       "esnext"
     ],
-    "types": ["vite/client", "vite-plugin-svgr/client"],
+    "types": ["vite/client", "vite-plugin-svgr/client", "mocha"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -23,7 +23,10 @@
     "jsx": "react-jsx",
     "jsxImportSource": "@emotion/react"
   },
+  // "include": [
+  //   "src"
+  // ]
   "include": [
-    "src"
+    "test"
   ]
 }
