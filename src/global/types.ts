@@ -33,13 +33,6 @@ export function actionHeaderStr(actionId: string, actionStatus: ActionStatus) {
   return `#${actionId} ${actionTagsStr(actionStatus)}`;
 }
 
-// Chains
-export interface Chain {
-  address: AddressStr,
-  genesisBlockId: BlockIdStr;
-  headBlockId: BlockIdStr;
-}
-
 export type StatusAlert = {
   status: AlertColor | 'none';
   msg: string;

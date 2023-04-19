@@ -1,60 +1,38 @@
-import React, { ChangeEvent, useCallback, useState } from 'react';
-import CssBaseline from '@mui/material/CssBaseline';
-import AppBar from '@mui/material/AppBar';
+import React, { useCallback, useState } from 'react';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
-import Toolbar from '@mui/material/Toolbar';
 import Paper from '@mui/material/Paper';
-import Stepper from '@mui/material/Stepper';
-import Step from '@mui/material/Step';
-import StepLabel from '@mui/material/StepLabel';
 import Button from '@mui/material/Button';
-import Alert, { AlertColor } from '@mui/material/Alert';
-import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import Select from '@mui/material/Select';
-import FormControl from '@mui/material/FormControl';
-import FormLabel from '@mui/material/FormLabel';
-import RadioGroup from '@mui/material/RadioGroup';
-import Radio from '@mui/material/Radio';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import { useImmer } from 'use-immer';
 import useIncrementingId from '../hooks/useIncrementingId';
-import { stringify } from 'querystring';
-import assert from '../helpers/assert';
 import { useAppDispatch } from '../global/hooks';
-import { initChain } from '../global/slices/chains';
+import { createChain } from '../global/slices/chains';
 import { setLocation } from '../global/slices/appLocation';
 import { setStatusAlert, unsetAlert } from '../global/slices/status';
-import { Account, AddressStr, ConfirmerValue } from 'firmcontracts/interface/types';
-// import AddressForm from './AddressForm';
-// import PaymentForm from './PaymentForm';
-// import Review from './Review';
+import { AccountWithAddress, EFConstructorArgs } from '../ifirmcore';
+import { Overwrite } from 'utility-types';
 
-type ConfirmerEntry = ConfirmerValue & {
-  id: string,
-  name?: string,
-  ipnsAddr?: string,
-};
+type ConfirmerEntry = Overwrite<
+  AccountWithAddress,
+  { id: string, extAccounts: string }
+>;
 
 export default function CreateChain() {
   const dispatch = useAppDispatch();
   const [name, setName] = useState('');
+  const [symbol, setSymbol] = useState('');
   const newConfirmerId = useIncrementingId('confirmer'); 
 
-  const newConfirmerEntry = useCallback(() => {
+  const newConfirmerEntry = useCallback<() => ConfirmerEntry>(() => {
     return {
       id: newConfirmerId(),
-      addr: '',
-      ipnsAddr: '',
+      address: '',
       name: '',
-      weight: -1,
+      extAccounts: '',
     }
   }, [newConfirmerId]);
 
@@ -70,6 +48,11 @@ export default function CreateChain() {
     setName(event.target.value);
   }, [setName]);
 
+  const onSymbolChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSymbol(event.target.value);
+  }, [setSymbol]);
+
   const onConfirmerChange = useCallback(
     (
       value: string,
@@ -77,12 +60,7 @@ export default function CreateChain() {
       confirmerId: string
     ) => {
       updateConfirmers(confirmers => {
-        if (property === 'weight') {
-          const weight = parseInt(value);
-          confirmers[confirmerId]![property] = weight;
-        } else {
-          confirmers[confirmerId]![property] = value.toString();
-        }
+        confirmers[confirmerId]![property] = value.toString();
       });
     },
     [updateConfirmers],
@@ -116,20 +94,23 @@ export default function CreateChain() {
           status: 'info',
           msg: 'Creating firmchain...',
         }));
-        const accounts: Record<AddressStr, Account> = {};
-        for (const conf of Object.values(confirmers)) {
-          accounts[conf.addr] = {
-            address: conf.addr,
-            name: conf.name,
-            ipnsAddress: conf.ipnsAddr
-          };
-        }
-        const args = {
-          confirmers: Object.values(confirmers),
-          accounts,
-          name,
+
+        const confs: AccountWithAddress[] =
+          Object.values(confirmers).map(c => {
+            return {
+              ...c,
+              id: 0,
+              extAccounts: {
+                'ipns': c.extAccounts
+              }
+            }
+        });
+        const args: EFConstructorArgs = {
+          confirmers: confs,
+          name, symbol,
+          timestamp: new Date(),
         };
-        const chain = await dispatch(initChain(args)).unwrap();
+        const chain = await dispatch(createChain(args)).unwrap();
         dispatch(unsetAlert());
         dispatch(setLocation(`/chains/${chain.address}`));
       } catch(err) {
@@ -169,15 +150,15 @@ export default function CreateChain() {
             label="Address"
             variant="standard"
             fullWidth
-            value={confirmer.addr}
-            onChange={e => onConfirmerChange(e.target.value, 'addr', confirmer.id)}
+            value={confirmer.address}
+            onChange={e => onConfirmerChange(e.target.value, 'address', confirmer.id)}
           />
           <TextField
             label="IPNS address"
             variant="standard"
             fullWidth
-            value={confirmer.ipnsAddr}
-            onChange={e => onConfirmerChange(e.target.value, 'ipnsAddr', confirmer.id)}
+            value={confirmer.extAccounts}
+            onChange={e => onConfirmerChange(e.target.value, 'extAccounts', confirmer.id)}
           />
         </Stack>
       );
@@ -202,6 +183,16 @@ export default function CreateChain() {
             sx={{ maxWidth: '14em' }}
             value={name}
             onChange={onNameChange}
+          />
+
+          <TextField
+            required
+            id="symbol"
+            label="Symbol"
+            variant="standard"
+            sx={{ maxWidth: '8em' }}
+            value={symbol}
+            onChange={onSymbolChange}
           />
 
           {renderConfirmers()}

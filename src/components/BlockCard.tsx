@@ -5,21 +5,16 @@ import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import { customTextWidthCss } from '../helpers/hashDisplay';
-import { styled } from '@mui/material/styles';
-import { IconButton, Stack } from '@mui/material';
+import { Stack } from '@mui/material';
 import { BlockTags, blockTagsStr } from '../global/types';
 import ShortenedBlockId from './ShortenedBlockId';
-import { Message, OptExtendedBlockValue } from 'firmcontracts/interface/types';
-import { useCallback, useMemo } from 'react';
-import { getBlockId } from 'firmcontracts/interface/abi';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import { setTimedAlert } from '../global/slices/status';
+import { useMemo } from 'react';
 import { useAppDispatch, useCopyCallback } from '../global/hooks';
-import { timestampToDateStr } from '../helpers/date';
+import { dateToStr, timestampToDateStr } from '../helpers/date';
+import { EFBlock } from '../ifirmcore';
 
 export type BlockCardProps = {
-  block: OptExtendedBlockValue;
+  block: EFBlock,
   tags: BlockTags;
 }
 
@@ -49,16 +44,16 @@ export default function BlockCard({ block, tags }: BlockCardProps) {
   const confirmed = false;
 
   const dateStr = useMemo(() => {
-    return timestampToDateStr(block.header.timestamp);    
+    return dateToStr(block.timestamp);    
   }, [block]);
 
-  const handleIdCopy = useCopyCallback(dispatch, block.state.blockId);
+  const handleIdCopy = useCopyCallback(dispatch, block.id);
 
   return (
     <Card raised sx={{ width: '21em' }}>
       <CardContent>
         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-          {`#${state.blockNum} `}
+          {`#${block.height} `}
           {blockTagsStr(tags)}
         </Typography>
         {/* <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
@@ -74,7 +69,7 @@ export default function BlockCard({ block, tags }: BlockCardProps) {
             </Typography>
             <span> </span>
             <Typography component="span" color={color}>
-              {state.confirmCount}/{state.totalWeight}{status}
+              {state.confirmationStatus.}/{state.totalWeight}{status}
             </Typography>
           </Box>
         }

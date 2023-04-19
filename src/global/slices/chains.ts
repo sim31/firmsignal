@@ -1,26 +1,23 @@
 import { createAsyncThunk, createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { 
-  AddressStr, ConfirmerValue, BlockIdStr, OptExtendedBlock, OptExtendedBlockValue, Account,
-} from "firmcontracts/interface/types";
-import { FirmChainConstrArgs, initFirmChain } from "../../firmcore-network-mock/contracts";
 import { AppThunk, RootState } from "../store";
-import { Chain,} from "../types";
 import { WritableDraft } from 'immer/dist/types/types-external';
-import { getConfirmers } from 'firmcontracts/interface/firmchain';
-import { getBlockId } from "firmcontracts/interface/abi";
 import assert from '../../helpers/assert';
 import { BytesLike, utils } from "ethers";
+import firmcore from "../firmcore-injection";
+import { BlockId, EFBlock, EFChain, EFConstructorArgs } from "../../ifirmcore";
+import { Address } from "../../iwallet";
+import ProgrammingError from "../../exceptions/ProgrammingError";
 
-interface FullChain extends Chain {
+interface FullChain extends EFChain {
   blocks: {
-    byId: Record<BlockIdStr, OptExtendedBlockValue>;
-    byBlockNum: OptExtendedBlockValue[];
+    byId: Record<BlockId, EFBlock>;
+    byBlockNum: EFBlock[];
   }
 }
 
 export interface Chains {
-  byAddress: Record<AddressStr, FullChain>;
-  defaultChain?: AddressStr;
+  byAddress: Record<Address, FullChain>;
+  defaultChain?: Address;
   status: 'idle' | 'loading' | 'success' | 'failed';
   error?: string;
 }
@@ -40,29 +37,24 @@ function _addChain(state: WritableDraft<Chains>, chain: FullChain) {
   }
 }
 
-export const initChain = createAsyncThunk(
-  'chains/initChain',
-  async (args: FirmChainConstrArgs): Promise<FullChain> => {
-    const { contract: chain, genesisBl } = await initFirmChain(args);
-    const genesisBlockId = getBlockId(genesisBl.header);
-    const genesisBlFull = {
-      ...genesisBl,
-      state: {
-        ...genesisBl.state,
-        name: args.name?.length ? args.name : undefined,
-        accounts: args.accounts,
-      }
-    };
+export const createChain = createAsyncThunk(
+  'chains/createChain',
+  async (args: EFConstructorArgs): Promise<FullChain> => {
+    const efChain = await firmcore.createEFChain(args);
+    const genesisBlockId = efChain.genesisBlockId;
+    const genesisBl = await efChain.blockById(genesisBlockId);
+    if (!genesisBl) {
+      throw new ProgrammingError("Chain created, but not genesis block");
+    }
+
     return {
-      address: chain.address,
-      genesisBlockId,
-      headBlockId: genesisBlockId,
+      ...efChain,
       blocks: {
         byId: {
-          [genesisBlockId]: genesisBlFull,
+          [genesisBlockId]: genesisBl,
         },
-        byBlockNum: [genesisBlFull],
-      },
+        byBlockNum: [genesisBl],
+      }
     };
   }
 );
@@ -73,15 +65,15 @@ export const chainsSlice = createSlice({
   initialState,
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
-    addChain: (state, action: PayloadAction<Chain>) => {
-      _addChain(state, {
-        ...action.payload,
-        blocks: {
-          byId: {},
-          byBlockNum: [],
-        },
-      });
-    },
+    // addChain: (state, action: PayloadAction<Chain>) => {
+    //   _addChain(state, {
+    //     ...action.payload,
+    //     blocks: {
+    //       byId: {},
+    //       byBlockNum: [],
+    //     },
+    //   });
+    // },
   },
   extraReducers: (builder) => {
     builder
@@ -100,28 +92,28 @@ export const chainsSlice = createSlice({
 
 export const { addChain } = chainsSlice.actions;
 
-export const selectDefaultChain = (state: RootState) => state.chains.defaultChain;
+export const selectDefaultChainAddr = (state: RootState) => state.chains.defaultChain;
 export const selectChainsByAddress = (state: RootState) => state.chains.byAddress;
 // Use like this: const chain = useAppSelector(state => selectChain(state, "aaa"))
-export const selectChain = (state: RootState, address: AddressStr): Chain | undefined =>
+export const selectChain = (state: RootState, address: Address): FullChain | undefined =>
   state.chains.byAddress[address];
 
-export const selectHead = (state: RootState, chainAddr: AddressStr) => {
+export const selectHead = (state: RootState, chainAddr: Address) => {
   const chain = state.chains.byAddress[chainAddr];
   return chain && chain.blocks.byId[chain.headBlockId];
 }
 
-export const selectChainName = (state: RootState, address: AddressStr): string | undefined =>
-  (selectHead(state, address))?.state.name;
+export const selectChainName = (state: RootState, address: Address): string | undefined =>
+  (selectChain(state, address))?.name;
 
 
-export const selectChainState = (state: RootState, chainAddr: AddressStr) => {
+export const selectChainState = (state: RootState, chainAddr: Address) => {
   return (selectHead(state, chainAddr))?.state;
 }
 
 export const selectSlice = (
   state: RootState,
-  chainAddr: AddressStr,
+  chainAddr: Address,
   start?: number,
   end?: number,
 ) => {

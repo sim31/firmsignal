@@ -17,7 +17,7 @@ import { setLocation } from '../global/slices/appLocation';
 import { getRouteParam } from '../helpers/routes';
 import { selectAccountsByAddress, selectCurrentAccount, selectDefaultAccount, setCurrentAccount } from '../global/slices/accounts';
 import { useCallback, useEffect } from 'react';
-import { getWallets } from '../wallet/wallet';
+import { getWallets } from '../wallet';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import copy from 'copy-to-clipboard';
 import { setTimedAlert } from '../global/slices/status';

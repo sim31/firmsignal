@@ -1,6 +1,6 @@
 import { Required } from 'utility-types';
-import { AccountSystemImpl, AccountSystemImpl__factory, AccountValue, BlockIdStr, ConfirmerOpValue, EdenPlusFractal, EdenPlusFractal__factory, FirmChain, FirmChainAbi, FirmChainAbi__factory, FirmChainImpl, FirmChainImpl__factory, GenesisBlock, IPFSLink, Message, OptExtendedBlock, OptExtendedBlockValue, Signature, ZeroId, BreakoutResults } from "firmcontracts/interface/types";
-import { IFirmCore, EFChain, EFConstructorArgs, Address, Account, BlockId, EFBlock, EFMsg, AccountId, ConfirmerSet, ConfirmerMap, EFBlockBuilder, BlockConfirmer, ConfirmerOpId, ConfirmerOp, ConfirmationStatus } from "../ifirmcore";
+import { AccountSystemImpl, AccountSystemImpl__factory, AccountValue, BlockIdStr, ConfirmerOpValue, EdenPlusFractal, EdenPlusFractal__factory, FirmChain, FirmChainAbi, FirmChainAbi__factory, FirmChainImpl, FirmChainImpl__factory, GenesisBlock, IPFSLink, Message, OptExtendedBlock, OptExtendedBlockValue, ZeroId, BreakoutResults, Signature } from "firmcontracts/interface/types";
+import { IFirmCore, EFChain, EFConstructorArgs, Address, Account, BlockId, EFBlock, EFMsg, AccountId, ConfirmerSet, ConfirmerMap, EFBlockBuilder, BlockConfirmer, ConfirmerOpId, ConfirmerOp, ConfirmationStatus, toEFChainPODSlice } from "../ifirmcore";
 import ganache from "ganache";
 import { BigNumber, ethers } from "ethers";
 import { createAddConfirmerOp, createGenesisBlockVal, createMsg, createUnsignedBlock, createUnsignedBlockVal } from "firmcontracts/interface/firmchain";
@@ -12,6 +12,7 @@ import ProgrammingError from '../exceptions/ProgrammingError';
 import { IWallet } from '../iwallet';
 import InvalidArgument from '../exceptions/InvalidArgument';
 import NotFound from '../exceptions/NotFound';
+import { Wallet } from "../wallet";
 
 let abiLib: Promise<FirmChainAbi>;
 let implLib: Promise<FirmChainImpl>;
@@ -26,6 +27,7 @@ interface Chain {
 const chains: Record<Address, Chain> = {};
 const blocks: Record<BlockId, OptExtendedBlockValue> = {}
 const blockNums: Record<BlockId, number> = {}
+const orderedBlocks: Record<Address, BlockId[]> = {};
 const msgs: Record<BlockId, EFMsg[]> = {};
 const fullAccounts: Record<IPFSLink, Account> = {};
 const confirmations: Record<BlockId, Address[]> = {};
@@ -101,7 +103,6 @@ async function deployEFChain(
   genesisBl.contract = contract.address;
 
   return { contract: await contract.deployed(), genesisBl };
-
 }
 
 async function init() {
@@ -185,9 +186,9 @@ function confirmStatusFromBlock(block: OptExtendedBlockValue, confirms: Address[
   };
 }
 
-async function signBlock(wallet: IWallet<Signature>, block: OptExtendedBlockValue): Promise<Signature> {
+async function signBlock(wallet: Wallet, block: OptExtendedBlockValue): Promise<Signature> {
   const digest = getBlockDigest(block.header);
-  return await wallet.sign(digest);
+  return await wallet.ethSign(digest);
 }
 
 function convertConfOpId(id: ConfirmerOpId): number {
@@ -204,8 +205,14 @@ function convertConfirmerOp(op: ConfirmerOp): ConfirmerOpValue {
   };
 }
 
-export class FirmCore implements IFirmCore<Signature> {
-  async createWalletConfirmer(wallet: IWallet<Signature>): Promise<BlockConfirmer> {
+export class FirmCore implements IFirmCore {
+  async createWalletConfirmer(wallet: IWallet): Promise<BlockConfirmer> {
+    let w: Wallet;
+    if (!('ethSign' in wallet && '_wallet' in wallet && typeof wallet['ethSign'] === 'function')) {
+      throw new OpNotSupprtedError("Wallet type unsupported");
+    } else {
+      w = (wallet as unknown) as Wallet;
+    }
     return {
       confirm: async (blockId: BlockId) => {
         const block = blocks[blockId];        
@@ -216,12 +223,12 @@ export class FirmCore implements IFirmCore<Signature> {
         if (!chain) {
           throw new NotFound("Chain not found");
         }
-        const signature = await signBlock(wallet, block);
+        const signature = await signBlock(w, block);
 
         const success = await chain.contract.extConfirm(
           block.header,
           wallet.getAddress(),
-          signature
+          signature,
         );
 
         if (!success) {
@@ -240,8 +247,8 @@ export class FirmCore implements IFirmCore<Signature> {
         }
       }
     };
-    
   }
+
   async createEFChain(args: EFConstructorArgs): Promise<EFChain> {
     // TODO: Construct EFConstructorArgsFull from args
     let nargs: Required<EFConstructorArgs, 'threshold'>;
@@ -263,6 +270,7 @@ export class FirmCore implements IFirmCore<Signature> {
     const bId = getBlockId(genesisBl.header);
     blocks[bId] = genesisBl;
     blockNums[bId] = 0;
+    orderedBlocks[contract.address]?.push(bId);
     msgs[bId] = [];
     confirmations[bId] = [];
     chains[contract.address] = {
@@ -410,6 +418,10 @@ export class FirmCore implements IFirmCore<Signature> {
         if (!chain) {
           throw new NotFound("Chain not found");
         }
+        const ordBlocks = orderedBlocks[chain.contract.address];
+        if (!ordBlocks) {
+          throw new ProgrammingError("Block not saved into orderedBlocks index");
+        }
 
         const serializedMsgs: Message[] = [];
         let confOps: ConfirmerOpValue[] | undefined;
@@ -473,6 +485,7 @@ export class FirmCore implements IFirmCore<Signature> {
         const bId = getBlockId(block.header);
         blocks[bId] = block;
         blockNums[bId] = prevBlockNum + 1;
+        ordBlocks.push(bId);
         msgs[bId] = messages;
         confirmations[bId] = [];
 
@@ -485,16 +498,38 @@ export class FirmCore implements IFirmCore<Signature> {
       }
     }
 
+    const getSlice = async (start?: number, end?: number) => {
+      const ordBlocks = orderedBlocks[chain.contract.address];
+      if (!ordBlocks) {
+        throw new NotFound("Blocks for this chain not found");
+      }
+
+      const slice = ordBlocks.slice(start, end);
+
+      const rSlice: EFBlock[] = [];
+      for (const blockId of slice) {
+        const bl = await blockById(blockId);
+        if (!bl) {
+          throw new ProgrammingError("Block id saved in orderedBlocks but not in blocks record");
+        }
+        rSlice.push(bl);
+      }
+      return rSlice;
+    }
+
     const efChain: EFChain = {
       builder,
       constructorArgs: chain.constructorArgs,
       blockById,
+      getSlice,
+      getPODSlice: undefined!, // Created in the next statement
       name: chain.constructorArgs.name,
       symbol: chain.constructorArgs.symbol,
       address: chain.contract.address,
       genesisBlockId: chain.genesisBlId,
       headBlockId: chain.headBlockId,
     };
+    efChain.getPODSlice = toEFChainPODSlice.bind(efChain, efChain);
 
     return efChain;
   }

@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { AddressStr, Account } from "firmcontracts/interface/types";
-import { getWallets } from "../../wallet/wallet";
+import { getWallets } from "../../wallet";
 import { RootState } from "../store";
 import { normalizeHexStr } from "firmcontracts/interface/abi";
 
