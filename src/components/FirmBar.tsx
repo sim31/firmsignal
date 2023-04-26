@@ -15,9 +15,8 @@ import { selectChainName, selectChainsByAddress } from '../global/slices/chains'
 import { useAppSelector, useAppDispatch, } from '../global/hooks';
 import { setLocation } from '../global/slices/appLocation';
 import { getRouteParam } from '../helpers/routes';
-import { selectAccountsByAddress, selectCurrentAccount, selectDefaultAccount, setCurrentAccount } from '../global/slices/accounts';
+import { setCurrentAccount, selectDefaultAccount, selectCurrentAccount, selectAccountsByAddress } from '../global/slices/accounts';
 import { useCallback, useEffect } from 'react';
-import { getWallets } from '../wallet';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import copy from 'copy-to-clipboard';
 import { setTimedAlert } from '../global/slices/status';
@@ -95,8 +94,7 @@ export default function FirmBar() {
 
   useEffect(() => {
     if (!currentAccount && defaultAccount) {
-      console.log("wallets: ", getWallets().map(w => w.mnemonic));
-      dispatch(setCurrentAccount(defaultAccount.address));      
+      dispatch(setCurrentAccount(defaultAccount));      
     }
   }, [currentAccount, defaultAccount])
   
@@ -128,7 +126,7 @@ export default function FirmBar() {
 
   function renderMenuItems() {
     const items = Object.values(chainsByAddr).map((chain) => {
-      const title = name ?? chain.address;
+      const title = chain.name ?? chain.address;
       return (
         <MenuItem value={chain.address} key={chain.address}>{title}</MenuItem>
       );
@@ -142,9 +140,9 @@ export default function FirmBar() {
   }
 
   function renderAccountItems() {
-    const items = Object.values(accountsByAddr).map((account) => {
+    const items = Object.keys(accountsByAddr).map((account) => {
       // TODO: Check if name is registered in the current chain and use that name?
-      const addr = account.address;
+      const addr = account;
       return (
       <MenuItem value={addr} key={addr}>
         <StyledAddrBlack>{addr}</StyledAddrBlack>

@@ -9,7 +9,7 @@ import Paper from '@mui/material/Paper';
 import { Link } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { shortenedAddr } from '../helpers/hashDisplay';
-import { Account, AddressStr, ConfirmerValue } from 'firmcontracts/interface/types';
+import { Account, Address, Confirmer } from 'firmcore';
 
 const AccountCell = styled(TableCell)({
   width: '21em',
@@ -19,18 +19,18 @@ const AccountCell = styled(TableCell)({
 });
 
 type OwnProps = {
-  confirmers: ConfirmerValue[],
-  accounts: Record<AddressStr, Account>,
+  confirmers: Confirmer[],
+  accounts: Record<Address, Account>,
 };
 
 export default function ConfirmerTable({ confirmers, accounts }: OwnProps) {
 
-  function renderName(conf: ConfirmerValue) {
-    const account = accounts[conf.addr];
+  function renderName(conf: Confirmer) {
+    const account = accounts[conf.address];
     if (account?.name?.length) {
       return account.name;
     } else {
-      return conf.addr;
+      return conf.address;
     }
   }
 
@@ -47,7 +47,7 @@ export default function ConfirmerTable({ confirmers, accounts }: OwnProps) {
         <TableBody>
           {confirmers.map((conf) => (
             <TableRow
-              key={conf.addr}
+              key={conf.address}
               sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
             >
               <AccountCell component="th" scope="row">

@@ -1,9 +1,5 @@
 import { Box, Container, Tab, Tabs, Typography } from '@mui/material';
 import * as React from 'react';
-import FirmHistory from './FirmHistory';
-import FirmActions from './FirmActions';
-import FirmState from './FirmState';
-import ConfirmerHierarchy from './ConfirmerHierarchy';
 import { useAppDispatch, useAppSelector, useRouteMatcher } from '../global/hooks';
 import { chainRouteMatcher, rootRouteMatcher } from '../global/routes';
 import { setLocation } from '../global/slices/appLocation';
@@ -47,7 +43,7 @@ export default function FirmChain() {
   return (
     <>
       <Typography variant="h4" align="center" sx={{ mt: '0.5em', mb: 0, paddingBottom: 0 }}>
-        {chainState?.name ?? `Chain ${shortAddress(chain.address)}`}
+        {chain.name ?? `Chain ${shortAddress(chain.address)}`}
       </Typography>
       {/* TODO: confirmations modal (shows which hierarchy of confirmers confirming selected block) */}
       {/* TODO: Remove browse buttons. It might be hard to implement and I think actions page will provide enough historic information for now */}

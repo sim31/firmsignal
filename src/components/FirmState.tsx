@@ -4,34 +4,45 @@ import BalancesTable from './BalancesTable';
 import BlockCard from './BlockCard';
 import ConfirmerTable from './ConfirmerTable';
 import StateInfoCard from './StateInfoCard';
-import { selectChain, selectSlice } from '../global/slices/chains';
-import { useAppSelector, useCurrentChainRoute, useLatestBlocks, useRouteMatcher } from '../global/hooks';
-import { rootRouteMatcher } from '../global/routes';
-import NotFoundError from './Errors/NotFoundError';
-import { BlockTags, Chain } from '../global/types';
-import { EmotionJSX } from '@emotion/react/types/jsx-namespace';
-import { getBlockId } from 'firmcontracts/interface/abi';
-import { BlockIdStr, OptExtendedBlockValue, } from 'firmcontracts/interface/types';
+import { useLatestBlocks } from '../global/hooks';
 import { useMemo } from 'react';
-import { TupleType } from 'typescript';
-import { blocksWithConfirmInfo, withConfirmInfo } from 'firmcontracts/interface/firmchain';
+import { Account, Address } from 'firmcore';
 
 export default function FirmState() {
-  const { filledBlocks, blockTags, state} = useLatestBlocks(6);
+  const { chain, headBlock, finalized, proposed  } = useLatestBlocks();
+
+  const confSet = headBlock?.state.confirmerSet;
+  const confStatus = headBlock?.state.confirmationStatus;
+  // TODO: Move to some util or hook
+  const accounts = useMemo(() => {
+    const acc: Record<Address, Account> = {};
+    const accountsByAddress = headBlock?.state.accountByAddress;
+    const accountsById = headBlock?.state.accountById;
+    if (accountsByAddress && accountsById) {
+      for (const accountId of Object.values(accountsByAddress)) {
+        const a = accountsById[accountId];
+        if (a && a.address) {
+          acc[a.address] = a;
+        }
+      }
+    }
+    return acc;
+  }, [headBlock])
 
   function renderBlockList() {
-    if (filledBlocks && blockTags) {
-      return filledBlocks.map((bl, index) => {
+    if (chain) {
+      const allBlocks = [ ...finalized, ...proposed ];
+      const blockCards = allBlocks.map((bl) => {
         return (
-          <Grid item key={bl.state.blockId}>
+          <Grid item key={bl.id}>
             <BlockCard 
               block={bl}
               // TODO: implement block tags
-              tags={blockTags[index] ?? ['proposed']}
             />
           </Grid>
         );
       });
+      return blockCards;
     } else {
       return [];
     }
@@ -47,13 +58,13 @@ export default function FirmState() {
       <Grid item xs="auto">
         <StateInfoCard title="Confirmers">
           <Typography>
-            Threshold: {state?.confirmerSet.threshold ?? '-'}
+            Threshold: {confSet?.threshold ?? '-'}
           </Typography>
           {
-            state?.confirmerSet.confirmers ?
+            confSet?.confirmers ?
             <ConfirmerTable
-              confirmers={state.confirmerSet.confirmers}
-              accounts={state.accounts || {}}
+              confirmers={Object.values(confSet.confirmers)}
+              accounts={accounts}
             />
             : '-'
           }

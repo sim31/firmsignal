@@ -6,16 +6,15 @@ import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { Stack } from '@mui/material';
-import { BlockTags, blockTagsStr } from '../global/types';
 import ShortenedBlockId from './ShortenedBlockId';
 import { useMemo } from 'react';
 import { useAppDispatch, useCopyCallback } from '../global/hooks';
-import { dateToStr, timestampToDateStr } from '../helpers/date';
-import { EFBlock } from '../ifirmcore';
+import { EFBlockPOD } from 'firmcore';
+import { TaggedBlock, blockTagsStr } from '../utils/blockTags';
+import { dateToStr, timestampToDate, timestampToDateStr } from 'firmcore/src/helpers/date';
 
 export type BlockCardProps = {
-  block: EFBlock,
-  tags: BlockTags;
+  block: TaggedBlock;
 }
 
 // Number
@@ -24,27 +23,27 @@ export type BlockCardProps = {
 // Confirmers
 // Proposals passed
 
-export default function BlockCard({ block, tags }: BlockCardProps) {
+export default function BlockCard({ block }: BlockCardProps) {
   const dispatch = useAppDispatch();
   const state = block.state;
 
   const [color, status] = useMemo(() => {
-    if (tags[0] === 'past' || tags[0] === 'consensus') {
+    if (block.tags[0] === 'past' || block.tags[0] === 'consensus') {
       return ['green', '(finalized)'];
-    } else if (tags[0] === 'genesis') {
+    } else if (block.tags[0] === 'genesis') {
       return [undefined, undefined];
-    } else if (tags[0] === 'proposed') {
+    } else if (block.tags[0] === 'proposed') {
       return ['orange', ''];
     } else {
       return ['red', ''];
     }
-  }, [tags]);
+  }, [block]);
 
   // TODO: Check if current user account is confirmer and confirmed this block
   const confirmed = false;
 
   const dateStr = useMemo(() => {
-    return dateToStr(block.timestamp);    
+    return timestampToDateStr(block.timestamp);    
   }, [block]);
 
   const handleIdCopy = useCopyCallback(dispatch, block.id);
@@ -54,7 +53,7 @@ export default function BlockCard({ block, tags }: BlockCardProps) {
       <CardContent>
         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
           {`#${block.height} `}
-          {blockTagsStr(tags)}
+          {blockTagsStr(block.tags)}
         </Typography>
         {/* <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
           {`${props.id}`}
@@ -69,7 +68,7 @@ export default function BlockCard({ block, tags }: BlockCardProps) {
             </Typography>
             <span> </span>
             <Typography component="span" color={color}>
-              {state.confirmationStatus.}/{state.totalWeight}{status}
+              {state.confirmationStatus.currentWeight}/{state.confirmationStatus.potentialWeight}{status}
             </Typography>
           </Box>
         }
@@ -78,7 +77,7 @@ export default function BlockCard({ block, tags }: BlockCardProps) {
           <Typography variant="body2">
             id: 
           </Typography>
-          <ShortenedBlockId variant="body2">{block.state.blockId}</ShortenedBlockId>
+          <ShortenedBlockId variant="body2">{block.id}</ShortenedBlockId>
           <Button size='small' sx={{ padding: 0 }} onClick={handleIdCopy}>
             Copy
           </Button>
@@ -96,7 +95,7 @@ export default function BlockCard({ block, tags }: BlockCardProps) {
       </CardContent>
       <CardActions>
         {/* {props.tags[1] === 'view' ? null : <Button>Browse</Button>} */}
-        {confirmed || tags[0] === 'orphaned' ? null : <Button>Confirm</Button>}
+        {confirmed || block.tags[0] === 'orphaned' ? null : <Button>Confirm</Button>}
       </CardActions>
     </Card>
   );

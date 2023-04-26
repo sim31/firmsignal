@@ -1,5 +1,6 @@
 import { store } from './store';
 import { setLocation } from './slices/appLocation';
+import firmcore from 'firmcore';
 
 export function initLocationSync() {
   // Update Redux if we navigated via browser's back/forward
@@ -22,4 +23,8 @@ export function initLocationSync() {
       document.body.scrollTop = 0
     }
   });
+}
+
+export async function initFirmcore() {
+  await firmcore.init();
 }

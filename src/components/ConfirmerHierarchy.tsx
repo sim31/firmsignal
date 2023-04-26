@@ -2,7 +2,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { TreeItem, TreeView } from "@mui/lab";
 import { Box, Container, Grid } from '@mui/material';
-import { Chain } from '../global/types';
+import { Chain } from 'firmcore';
 
 export type Node = {
   name: string;

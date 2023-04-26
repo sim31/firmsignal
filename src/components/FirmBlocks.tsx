@@ -12,14 +12,14 @@ import ActionCreateCard from './ActionCreateCard';
 import SetDirectoryForm from './SetDirectoryForm';
 import UpdateConfirmersForm from './UpdateConfirmersForm';
 import ConfirmForm from './ConfirmForm';
-import { blockTagsStr, Chain } from '../global/types';
 import { useAppDispatch, useCopyCallback, useLatestBlocks } from '../global/hooks';
-import { timestampToDate, timestampToDateStr } from '../helpers/date';
 import { getRouteParam } from '../helpers/routes';
 import { setLocation } from '../global/slices/appLocation';
 import { useCallback, useEffect, useMemo } from 'react';
 import copy from 'copy-to-clipboard';
 import { setTimedAlert } from '../global/slices/status';
+import { blockTagsStr } from '../utils/blockTags';
+import { dateToStr, timestampToDate, timestampToDateStr } from 'firmcore/src/helpers/date';
 
 const BlockTabs = styled(Tabs)({
   '& .MuiButtonBase-root': {
@@ -28,15 +28,18 @@ const BlockTabs = styled(Tabs)({
 });
 
 export default function FirmBlocks() {
-  const { filledBlocks, blockTags, routeMatch, chain } = useLatestBlocks(12);
+  const { finalized, proposed, headBlock, routeMatch, chain } = useLatestBlocks();
   const selectedBlockId = getRouteParam(routeMatch, 'block', '');
   const dispatch = useAppDispatch();
 
   const block = useMemo(() => {
     if (selectedBlockId.length && selectedBlockId !== 'messages') {
-      return filledBlocks?.find((bl) => bl.state.blockId === selectedBlockId);
+      const bl = finalized.find((bl) => bl.id === selectedBlockId);
+      if (!bl) {
+        return proposed.find((bl) => bl.id === selectedBlockId);
+      }
     }
-  }, [filledBlocks, selectedBlockId]);
+  }, [finalized, proposed, selectedBlockId]);
 
   function selectBlock(tabValue: string) {
     dispatch(setLocation(`/chains/${chain?.address ?? ''}/proposals/${tabValue}`));
@@ -69,26 +72,16 @@ export default function FirmBlocks() {
   }
 
   function renderBlockTabs() {
-    const tabs = [
-      (<Tab key='messages' value='messages' label="Proposed Messages"/>),
-    ];
-
-    if (filledBlocks && blockTags) {
-      const newTabs = filledBlocks.map((bl, index) => {
-        const tags = blockTags[index];
-        const tagsStr = tags ? blockTagsStr(tags) : '';
-        return (
-          <Tab
-            key={bl.state.blockId}
-            label={renderLabel(bl.state.blockNum, tagsStr, timestampToDateStr(bl.header.timestamp))}
-            value={bl.state.blockId}
-          />
-        )
-      });
-      tabs.push(...newTabs);
-    }
-
-    return tabs;
+    return [...finalized, ...proposed].map((bl) => {
+      const tagStr = blockTagsStr(bl.tags);
+      return (
+        <Tab
+          key={bl.id}
+          label={renderLabel(bl.height, tagStr, timestampToDateStr(bl.timestamp))}
+          value={bl.id}
+        />
+      )
+    });
   }
 
   return (
@@ -114,7 +107,7 @@ export default function FirmBlocks() {
                 id: 
               </Typography>
               <ShortenedBlockId>
-                {block.state.blockId}
+                {block.id}
               </ShortenedBlockId>
               <Button size='small' sx={{ padding: 0, mb: '2em' }} onClick={handleBlIdCopy}>
                 Copy

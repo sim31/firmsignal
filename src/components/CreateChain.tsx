@@ -13,7 +13,7 @@ import { useAppDispatch } from '../global/hooks';
 import { createChain } from '../global/slices/chains';
 import { setLocation } from '../global/slices/appLocation';
 import { setStatusAlert, unsetAlert } from '../global/slices/status';
-import { AccountWithAddress, EFConstructorArgs } from '../ifirmcore';
+import { AccountWithAddress, EFConstructorArgs } from 'firmcore';
 import { Overwrite } from 'utility-types';
 
 type ConfirmerEntry = Overwrite<
@@ -108,7 +108,6 @@ export default function CreateChain() {
         const args: EFConstructorArgs = {
           confirmers: confs,
           name, symbol,
-          timestamp: new Date(),
         };
         const chain = await dispatch(createChain(args)).unwrap();
         dispatch(unsetAlert());
@@ -175,25 +174,28 @@ export default function CreateChain() {
           Smart contract
         </Typography> */}
         <Stack spacing={3}>
-          <TextField
-            required
-            id="name"
-            label="Name"
-            variant="standard"
-            sx={{ maxWidth: '14em' }}
-            value={name}
-            onChange={onNameChange}
-          />
+          <Stack spacing={3} direction='row'>
+            <TextField
+              required
+              id="name"
+              label="Name"
+              variant="standard"
+              sx={{ maxWidth: '14em' }}
+              value={name}
+              onChange={onNameChange}
+            />
 
-          <TextField
-            required
-            id="symbol"
-            label="Symbol"
-            variant="standard"
-            sx={{ maxWidth: '8em' }}
-            value={symbol}
-            onChange={onSymbolChange}
-          />
+            <TextField
+              required
+              id="symbol"
+              label="Symbol"
+              variant="standard"
+              sx={{ maxWidth: '8em' }}
+              value={symbol}
+              onChange={onSymbolChange}
+            />
+
+          </Stack>
 
           {renderConfirmers()}
 
