@@ -6,6 +6,7 @@ import FirmActions from '../components/FirmActions';
 import FirmChain from '../components/FirmChain';
 import FirmState from '../components/FirmState';
 import FirmBlocks from '../components/FirmBlocks';
+import CreateBlock from '../components/CreateBlock';
  
 const rootRouteMatcher = createMatcher({
   '/newChain': CreateChain,
@@ -20,9 +21,9 @@ const chainRouteMatcher = createMatcher({
   '/chains/:chainId': FirmState,
   '/chains/:chainId/overview': FirmState,
   '/chains/:chainId/dir': NotFoundError,
-  '/chains/:chainId/proposals': FirmBlocks,
-  '/chains/:chainId/proposals/:block': FirmBlocks,
-  '/chains/:chainId/confirmers': ConfirmerHierarchy,
+  '/chains/:chainId/blocks': FirmBlocks,
+  '/chains/:chainId/blocks/:block': FirmBlocks,
+  '/chains/:chainId/newBlock': CreateBlock,
   '*': NotFoundError,
 });
 

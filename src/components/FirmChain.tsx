@@ -52,9 +52,8 @@ export default function FirmChain() {
         {/* TODO: Make sure all fit on smaller screens (introduce scrollbar (will have to remove centered) on smaller viewports) */}
         <Tabs value={tabValue.length ? tabValue : 'overview'} onChange={handleTabChange} centered>
           <Tab label="Overview" value="overview" />
-          <Tab label="Directory" value="dir" />
-          <Tab label="Proposals" value="proposals" />
-          <Tab label="Confirmers" value="confirmers" />
+          <Tab label="Records" value="blocks" />
+          <Tab label="New Record" value="newBlock" />
           {/* <Tab label="History" value="blocks" /> */}
           {/* <Tab label="Propose" value="createProp" />
           <Tab label="Propose 2" value="createProp" /> */}

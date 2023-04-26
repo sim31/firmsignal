@@ -42,7 +42,7 @@ export default function FirmBlocks() {
   }, [finalized, proposed, selectedBlockId]);
 
   function selectBlock(tabValue: string) {
-    dispatch(setLocation(`/chains/${chain?.address ?? ''}/proposals/${tabValue}`));
+    dispatch(setLocation(`/chains/${chain?.address ?? ''}/blocks/${tabValue}`));
   }
 
   useEffect(() => {
