@@ -35,9 +35,9 @@ export default function ActionCard(props: ActionCreateCardProps) {
 
       </CardContent>
 
-      <CardActions>
+      {/* <CardActions>
         <Button>Propose</Button>
-      </CardActions>
+      </CardActions> */}
     </Card>
   );
 }

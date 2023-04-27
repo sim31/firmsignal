@@ -33,7 +33,7 @@ export default function BlockCard({ block }: BlockCardProps) {
     } else if (block.tags[0] === 'genesis') {
       return [undefined, undefined];
     } else if (block.tags[0] === 'proposed') {
-      return ['orange', ''];
+      return ['orange', '(not finalized)'];
     } else {
       return ['red', ''];
     }

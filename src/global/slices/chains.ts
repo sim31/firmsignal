@@ -3,7 +3,9 @@ import { AppThunk, RootState } from "../store";
 import { WritableDraft } from 'immer/dist/types/types-external';
 import assert from 'firmcore/src/helpers/assert';
 import ProgrammingError from 'firmcore/src/exceptions/ProgrammingError';
-import firmcore, { EFChainPODSlice, Address, EFConstructorArgs, NormEFChainPOD } from 'firmcore';
+import firmcore, { EFChainPODSlice, Address, EFConstructorArgs, NormEFChainPOD, EFMsg, EFBlockPOD } from 'firmcore';
+import InvalidArgument from "firmcore/src/exceptions/InvalidArgument";
+import NotFound from "firmcore/src/exceptions/NotFound";
 
 export type Chain = NormEFChainPOD;
 
@@ -30,11 +32,42 @@ function _addChain(state: WritableDraft<Chains>, chain: Chain) {
   }
 }
 
+export interface EFCreateBlockArgs {
+  chainAddr: Address,
+  msgs: EFMsg[],
+};
+
 export const createChain = createAsyncThunk(
   'chains/createChain',
   async (args: EFConstructorArgs): Promise<Chain> => {
     const efChain = await firmcore.createEFChain(args);
     return efChain.getNormPODChain();
+  }
+);
+
+export const createBlock = createAsyncThunk(
+  'chains/createBlock',
+  async (args: EFCreateBlockArgs, { getState }): Promise<{ args: EFCreateBlockArgs, block: EFBlockPOD }> => {
+    const state = getState() as RootState;
+    const chain = selectChain(state, args.chainAddr);
+    const headBl = selectHead(state, args.chainAddr);
+    if (!chain || !headBl) {
+      throw new InvalidArgument("Cannot create a block for unknown chain")
+    }
+
+    const efChain = await firmcore.getChain(args.chainAddr);
+    if (!efChain) {
+      throw new NotFound("Firmcore cannot find chain");
+    }
+
+    const bl = await efChain.builder.createBlock(headBl.id, args.msgs);
+    
+    const pod = await efChain.blockPODById(bl.id);
+    if (!pod) {
+      throw new NotFound("Couldn't find block just created");
+    }
+
+    return { args, block: pod };
   }
 );
 
@@ -56,6 +89,16 @@ export const chainsSlice = createSlice({
       })
       .addCase(createChain.rejected, (state) => {
         state.status = 'failed';
+      })
+      
+      .addCase(createBlock.fulfilled, (state, action) => {
+        state.status = 'success';
+        const { block, args } = action.payload;
+        const chain = state.byAddress[args.chainAddr];
+        if (!chain) {
+          throw new ProgrammingError("Chain should be stored");
+        }
+        chain.slots.proposed.push(block);
       });
   },
 });
