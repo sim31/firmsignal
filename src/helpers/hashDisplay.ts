@@ -18,8 +18,8 @@ export const shortenedAddrCss = customTextWidthCss(SHORTENED_ADDR_WIDTH);
 
 export const shortenedAddr = customTextWidth(SHORTENED_ADDR_WIDTH);
 
-export function shortBlockId(id: string) {
-  return id.slice(0, 6);
+export function shortBlockId(id: string, len: number = 10) {
+  return `${id.slice(0, len)}...`;
 }
 
 export function shortAddress(id: string, len: number = 10) {

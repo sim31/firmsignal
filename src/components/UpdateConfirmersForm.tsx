@@ -23,7 +23,7 @@ const AccountCell = styled(TableCell)({
   textOverflow: 'ellipsis',
 });
 
-export default function UpdateConfirmersAction() {
+export default function UpdateConfirmersForm() {
 
   return (
     <Stack>

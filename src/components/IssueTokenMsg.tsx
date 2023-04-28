@@ -9,7 +9,7 @@ const StyledItem = styled(TreeItem)({
   },
 });
 
-export default function IssueTokenAction() {
+export default function IssueTokenMsg() {
         // sx={{ height: 240, flexGrow: 1, maxWidth: 400, overflowY: 'auto' }}
   return (
     <TreeView 

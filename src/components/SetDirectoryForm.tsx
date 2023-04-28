@@ -1,11 +1,14 @@
 import { TextField } from "@mui/material";
-import { CreateMsgProps } from "../global/messages";
+import { EditMsgProps, msgTypes } from "../global/messages";
 import { useCallback, useState } from "react";
 import { newSetDirMsg } from "firmcore";
 import firmcore from 'firmcore';
+import MessageCreateCard from "./MessageCreateCard";
 
-export default function SetDirectoryForm(props: CreateMsgProps) {
+export default function SetDirectoryForm(props: EditMsgProps) {
   const [value, setValue] = useState(firmcore.randomAddress());
+  const idStr = props.id ? props.id : props.msgNumber.toString();
+  const typeInfo = msgTypes['setDir'];
 
   const onDirChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -14,17 +17,19 @@ export default function SetDirectoryForm(props: CreateMsgProps) {
     if (event.target.value.length) {
       props.onChange(newSetDirMsg(event.target.value));
     }
-  }, [setValue]);
+  }, [setValue, props.onChange]);
 
   return (
-    <TextField
-      required
-      id="name"
-      label="IPFS link address"
-      variant="standard"
-      sx={{ minWidth: '32em' }}
-      onChange={onDirChange}
-      value={value}
-    />
+    <MessageCreateCard idStr={idStr} title={typeInfo.title}>
+      <TextField
+        required
+        id="name"
+        label="IPFS link address"
+        variant="standard"
+        sx={{ minWidth: '32em' }}
+        onChange={onDirChange}
+        value={value}
+      />
+    </MessageCreateCard>
   );
 }

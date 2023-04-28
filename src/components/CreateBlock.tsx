@@ -4,7 +4,7 @@ import { createBlock, selectHead } from "../global/slices/chains";
 import { useCallback, useState } from "react";
 import ShortenedBlockId from "./ShortenedBlockId";
 import { EFMsg, MsgTypeName } from "firmcore";
-import ActionCreateCard from "./ActionCreateCard";
+import MessageCreateCard from "./MessageCreateCard";
 import UpdateConfirmersForm from "./UpdateConfirmersForm";
 import SetDirectoryForm from "./SetDirectoryForm";
 import AddIcon from '@mui/icons-material/Add';
@@ -100,15 +100,13 @@ export default function CreateBlock() {
 
   function renderMessages() {
     // TODO: issue a token?
-    const rMsgs = Object.values(msgs).map(msg => {
+    const rMsgs = Object.values(msgs).map((msg, index) => {
       const typeInfo = msgTypes[msg.typeName];
-      const Component = typeInfo.component;
+      const Component = typeInfo.editComponent;
       if (Component) {
         return (
           <Grid item key={msg.id}>
-            <ActionCreateCard title={typeInfo.title}>
-              <Component onChange={(m) => onMsgChange(msg.id, m)}/>
-            </ActionCreateCard>
+            <Component msgNumber={index+1} onChange={(m) => onMsgChange(msg.id, m)}/>
           </Grid>
         );
       } else {
@@ -129,7 +127,7 @@ export default function CreateBlock() {
       <Grid container spacing={2} sx={{ mt: 1, mr: 2, ml: 2 }}>
 
         <Grid item>
-          <Button size="large" onClick={onAddMsg}>Add Message to Block</Button>
+          <Button size="large" onClick={onAddMsg}>Add Message</Button>
         </Grid>
 
         <Grid item>

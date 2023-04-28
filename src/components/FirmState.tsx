@@ -32,6 +32,7 @@ export default function FirmState() {
   function renderBlockList() {
     if (chain) {
       const allBlocks = [ ...finalized, ...proposed ];
+      allBlocks.reverse();
       const blockCards = allBlocks.map((bl) => {
         return (
           <Grid item key={bl.id}>

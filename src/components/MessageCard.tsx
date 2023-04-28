@@ -8,11 +8,10 @@ import Typography from '@mui/material/Typography';
 import { customTextWidthCss } from '../helpers/hashDisplay';
 import { styled } from '@mui/material/styles';
 import { Checkbox, Stack } from '@mui/material';
-import { actionHeaderStr, ActionStatus, actionTagsStr, BlockTags, blockTagsStr } from '../global/types';
+import { messageTagText } from '../helpers/messageTagDisplay';
 
-export type ActionCardProps = {
+export type MessageCardProps = {
   id: string;
-  status: ActionStatus;
   title: string; // Action name
   selectable?: boolean;
 } & React.PropsWithChildren;
@@ -23,7 +22,7 @@ export type ActionCardProps = {
 // Confirmers
 // Proposals passed
 
-export default function ActionCard(props: ActionCardProps) {
+export default function MessageCard(props: MessageCardProps) {
 
   return (
     <Card raised>
@@ -35,7 +34,7 @@ export default function ActionCard(props: ActionCardProps) {
 
       <CardContent>
         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-          {actionHeaderStr(props.id, props.status)}
+          {messageTagText(props.id)}
         </Typography>
         {/* <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
           {`${props.id}`}

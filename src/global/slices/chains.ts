@@ -3,7 +3,7 @@ import { AppThunk, RootState } from "../store";
 import { WritableDraft } from 'immer/dist/types/types-external';
 import assert from 'firmcore/src/helpers/assert';
 import ProgrammingError from 'firmcore/src/exceptions/ProgrammingError';
-import firmcore, { EFChainPODSlice, Address, EFConstructorArgs, NormEFChainPOD, EFMsg, EFBlockPOD } from 'firmcore';
+import firmcore, { EFChainPODSlice, Address, EFConstructorArgs, NormEFChainPOD, EFMsg, EFBlockPOD, BlockId, walletManager } from 'firmcore';
 import InvalidArgument from "firmcore/src/exceptions/InvalidArgument";
 import NotFound from "firmcore/src/exceptions/NotFound";
 
@@ -71,6 +71,43 @@ export const createBlock = createAsyncThunk(
   }
 );
 
+export type RefreshChainArgs = {
+  chainAddress: Address
+};
+
+export const updateChain = createAsyncThunk(
+  'chains/updateChain',
+  async (args: RefreshChainArgs) => {
+    const efChain = await firmcore.getChain(args.chainAddress);
+    if (!efChain) {
+      throw new NotFound("Chain not found");
+    }
+    const podChain = await efChain.getNormPODChain();
+    return podChain;
+  }
+);
+
+export interface ConfirmBlockArgs {
+  confirmerAddr: Address,
+  blockId: BlockId,
+  chainAddress: Address,
+}
+
+export const confirmBlock = createAsyncThunk(
+  'chains/confirmBlock',
+  async (args: ConfirmBlockArgs, { dispatch }): Promise<void> => {
+    const wallet = await walletManager.getWallet(args.confirmerAddr);
+    if (!wallet) {
+      throw new NotFound("Wallet not found");
+    }
+    const confirmer = await firmcore.createWalletConfirmer(wallet);
+
+    await confirmer.confirm(args.blockId);
+    
+    const chainAddress = args.chainAddress;
+    await dispatch(updateChain({ chainAddress }));
+  }
+);
 
 export const chainsSlice = createSlice({
   name: 'chains',
@@ -99,6 +136,12 @@ export const chainsSlice = createSlice({
           throw new ProgrammingError("Chain should be stored");
         }
         chain.slots.proposed.push(block);
+      })
+
+      .addCase(updateChain.fulfilled, (state, action) => {
+        state.status = 'success';
+        const chain = action.payload;
+        state.byAddress[chain.address] = chain;
       });
   },
 });

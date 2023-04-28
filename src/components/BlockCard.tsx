@@ -6,12 +6,13 @@ import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { Stack } from '@mui/material';
-import ShortenedBlockId from './ShortenedBlockId';
 import { useMemo } from 'react';
 import { useAppDispatch, useCopyCallback } from '../global/hooks';
 import { EFBlockPOD } from 'firmcore';
 import { TaggedBlock, blockTagsStr } from '../utils/blockTags';
 import { dateToStr, timestampToDate, timestampToDateStr } from 'firmcore/src/helpers/date';
+import { confirmationsText } from '../helpers/confirmationsDisplay';
+import { shortBlockId } from '../helpers/hashDisplay';
 
 export type BlockCardProps = {
   block: TaggedBlock;
@@ -27,15 +28,12 @@ export default function BlockCard({ block }: BlockCardProps) {
   const dispatch = useAppDispatch();
   const state = block.state;
 
-  const [color, status] = useMemo(() => {
-    if (block.tags[0] === 'past' || block.tags[0] === 'consensus') {
-      return ['green', '(finalized)'];
-    } else if (block.tags[0] === 'genesis') {
-      return [undefined, undefined];
-    } else if (block.tags[0] === 'proposed') {
-      return ['orange', '(not finalized)'];
+  const confirmText = useMemo(() => {
+    // Genesis block does not need confirmations but it might have them
+    if (block.tags[0] === 'genesis' && block.state.confirmationStatus.currentWeight === 0) {
+      return null;
     } else {
-      return ['red', ''];
+      return confirmationsText(block);
     }
   }, [block]);
 
@@ -61,23 +59,22 @@ export default function BlockCard({ block }: BlockCardProps) {
         <Typography variant="h5" component="div">
           {dateStr}
         </Typography>
-        { status && color &&
+        { confirmText &&
           <Box sx={{ mb: 1.5 }}>
             <Typography component="span" color="text.secondary">
               Confirmations:  
             </Typography>
             <span> </span>
-            <Typography component="span" color={color}>
-              {state.confirmationStatus.currentWeight}/{state.confirmationStatus.potentialWeight}{status}
+            <Typography component="span" color={confirmText.color}>
+              {confirmText.text}
             </Typography>
           </Box>
         }
 
         <Stack direction="row" spacing={1}>
           <Typography variant="body2">
-            id: 
+            id: {shortBlockId(block.id)}
           </Typography>
-          <ShortenedBlockId variant="body2">{block.id}</ShortenedBlockId>
           <Button size='small' sx={{ padding: 0 }} onClick={handleIdCopy}>
             Copy
           </Button>

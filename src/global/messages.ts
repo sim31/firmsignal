@@ -2,6 +2,7 @@ import { EFMsg, MsgTypeName } from "firmcore";
 import UpdateConfirmersForm from "../components/UpdateConfirmersForm";
 import SetDirectoryForm from "../components/SetDirectoryForm";
 import { EmotionJSX } from "@emotion/react/types/jsx-namespace";
+import { SetDirectoryMsg } from "../components/SetDirectoryMsg";
 
 export interface InputError {
   what: string;
@@ -17,40 +18,52 @@ export function isValidMsg(content: MsgContent): content is EFMsg {
   }
 }
 
-export interface CreateMsgProps {
+export interface EditMsgProps {
+  id?: string;
+  msgNumber: number;
   onChange: (msg: MsgContent) => void;
 }
 
-export type MsgComponent = (props: CreateMsgProps) => EmotionJSX.Element;
+export type MsgEditComponent = (props: EditMsgProps) => EmotionJSX.Element;
+
+export interface MsgDisplayProps {
+  id?: string;
+  msgNumber: number;
+  msg: EFMsg;
+}
+
+export type MsgDisplayComponent = (props: MsgDisplayProps) => EmotionJSX.Element
 
 export interface MsgTypeInfo {
   title: string,
-  component?: MsgComponent,
+  editComponent?: MsgEditComponent,
+  displayComponent?: MsgDisplayComponent;
 };
 
 export const msgTypes: Record<MsgTypeName, MsgTypeInfo> = {
   'efSubmitResults': {
     title: 'Breakout room results',
-    component: undefined
+    editComponent: undefined
   },
   'createAccount': {
     title: 'Create account',
-    component: undefined
+    editComponent: undefined
   },
   'removeAccount': {
     title: 'Remove account',
-    component: undefined,
+    editComponent: undefined,
   },
   'updateAccount': {
     title: 'Update account',
-    component: undefined,
+    editComponent: undefined,
   },
   'updateConfirmers': {
     title: 'Update confirmers',
-    component: UpdateConfirmersForm,
+    editComponent: UpdateConfirmersForm,
   },
   'setDir': {
     title: 'Set directory',
-    component: SetDirectoryForm,
+    editComponent: SetDirectoryForm,
+    displayComponent: SetDirectoryMsg,
   }
 };
