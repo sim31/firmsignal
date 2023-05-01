@@ -55,9 +55,7 @@ export function useLatestBlocks (maxBlocks: number = 6) {
 
 export function useCopyCallback (dispatch: ReturnType<typeof useAppDispatch>, value: any) {
   return useCallback(() => {
-    if ('toString' in value) {
-      copy(value.toString())
-      dispatch(setTimedAlert({ status: 'info', msg: 'Copied to clipboard' }, 3000))
-    }
+    copy(value.toString())
+    dispatch(setTimedAlert({ status: 'info', msg: 'Copied to clipboard' }, 3000))
   }, [dispatch, value])
 }

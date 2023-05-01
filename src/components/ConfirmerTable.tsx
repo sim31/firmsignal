@@ -40,6 +40,7 @@ export default function ConfirmerTable ({ confirmers, accounts }: OwnProps) {
           <TableRow>
             {/* {renderHeadCell('Address')} */}
             <TableCell><b>Account</b></TableCell>
+            <TableCell><b>Address</b></TableCell>
             <TableCell align="right"><b>Weight</b></TableCell>
           </TableRow>
         </TableHead>
@@ -54,6 +55,7 @@ export default function ConfirmerTable ({ confirmers, accounts }: OwnProps) {
                   {renderName(conf)}
                 </Link>
               </AccountCell>
+              <TableCell>{conf.address}</TableCell>
               <TableCell align="right">{conf.weight}</TableCell>
             </TableRow>
           ))}

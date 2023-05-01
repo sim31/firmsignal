@@ -215,7 +215,7 @@ export default function FirmBar () {
 
           {/* TODO: Render in a wayt that is clearer that this is the account */}
           <StyledSelect
-            value={currentAccount !== undefined || ''}
+            value={currentAccount !== undefined ? currentAccount : ''}
             onChange={handleSelectAccount}
             label='Account'
             labelId='account-select'
