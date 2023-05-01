@@ -71,17 +71,12 @@ export default function FirmState () {
           }
         </StateInfoCard>
       </Grid>
-      <Grid item xs="auto">
+      {/* <Grid item xs="auto">
         <StateInfoCard title="Balances">
           <BalancesTable />
         </StateInfoCard>
-      </Grid>
-      <Grid item xs={12} md={6} lg={4} xl={3}>
-        <StateInfoCard title="Home Space">
-          <Typography>rack two birds</Typography>
-        </StateInfoCard>
-      </Grid>
-      <Grid item xs={12} md={6} lg={5}>
+      </Grid> */}
+      {/* <Grid item xs={12} md={6} lg={5}>
         <StateInfoCard title="Directory">
           <Typography noWrap>
             <Link href="ipfs://QmekpHNKhz7CcCLyP2MwbyerFutd9JL4KXveANy57vbHZq" sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -89,12 +84,12 @@ export default function FirmState () {
             </Link>
           </Typography>
         </StateInfoCard>
-      </Grid>
-      <Grid item xs={12} md={6} lg={4} xl={3}>
+      </Grid> */}
+      {/* <Grid item xs={12} md={6} lg={4} xl={3}>
         <StateInfoCard title="Chain Name">
           <Typography>EdenFractal</Typography>
         </StateInfoCard>
-      </Grid>
+      </Grid> */}
     </Grid>
   )
 }
