@@ -1,18 +1,19 @@
-import { TreeItem, TreeView } from "@mui/lab";
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { styled } from '@mui/material/styles';
+import React from 'react'
+import { TreeItem, TreeView } from '@mui/lab'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import { styled } from '@mui/material/styles'
 
 const StyledItem = styled(TreeItem)({
   '& .MuiTreeItem-content': {
-    padding: 0,
-  },
-});
+    padding: 0
+  }
+})
 
-export default function IssueTokenMsg() {
-        // sx={{ height: 240, flexGrow: 1, maxWidth: 400, overflowY: 'auto' }}
+export default function IssueTokenMsg () {
+  // sx={{ height: 240, flexGrow: 1, maxWidth: 400, overflowY: 'auto' }}
   return (
-    <TreeView 
+    <TreeView
       expanded={['1', '5', '6']}
       defaultCollapseIcon={<ExpandMoreIcon />}
       defaultExpandIcon={<ChevronRightIcon />}
@@ -24,5 +25,5 @@ export default function IssueTokenMsg() {
         <StyledItem nodeId="10" label="56" />
       </StyledItem>
     </TreeView>
-  );
+  )
 }

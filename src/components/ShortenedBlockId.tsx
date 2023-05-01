@@ -1,4 +1,4 @@
-import { styled, Typography } from "@mui/material";
-import { customTextWidthCss } from "../helpers/hashDisplay";
+import { styled, Typography } from '@mui/material'
+import { customTextWidthCss } from '../helpers/hashDisplay'
 
-export default styled(Typography)(customTextWidthCss('6em'));
+export default styled(Typography)(customTextWidthCss('6em'))

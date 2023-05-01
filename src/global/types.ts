@@ -1,7 +1,6 @@
-import { AlertColor } from "@mui/material";
+import { type AlertColor } from '@mui/material'
 
-export type StatusAlert = {
-  status: AlertColor | 'none';
-  msg: string;
+export interface StatusAlert {
+  status: AlertColor | 'none'
+  msg: string
 }
-

@@ -1,91 +1,91 @@
-import * as React from 'react';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import Box from '@mui/material/Box';
-import { Button, Grid, Link, Stack, styled, TextField, Typography } from '@mui/material';
-import { useAppDispatch, useAppSelector, useCopyCallback, useLatestBlocks } from '../global/hooks';
-import { getRouteParam } from '../helpers/routes';
-import { setLocation } from '../global/slices/appLocation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { confirmationsText } from '../helpers/confirmationsDisplay';
-import { msgTypes } from '../global/messages';
-import { blockTagsStr } from '../utils/blockTags';
-import { timestampToDateStr } from 'firmcore/src/helpers/date';
-import ConfirmDialog from './ConfirmDialog';
-import { shortBlockId } from '../helpers/hashDisplay';
-import { selectCurrentAccount } from '../global/slices/accounts';
-import { confirmBlock, ConfirmBlockArgs } from '../global/slices/chains';
-import { setStatusAlert, unsetAlert } from '../global/slices/status';
+import * as React from 'react'
+import Tabs from '@mui/material/Tabs'
+import Tab from '@mui/material/Tab'
+import Box from '@mui/material/Box'
+import { Button, Grid, Link, Stack, styled, TextField, Typography } from '@mui/material'
+import { useAppDispatch, useAppSelector, useCopyCallback, useLatestBlocks } from '../global/hooks'
+import { getRouteParam } from '../helpers/routes'
+import { setLocation } from '../global/slices/appLocation'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { confirmationsText } from '../helpers/confirmationsDisplay'
+import { msgTypes } from '../global/messages'
+import { blockTagsStr } from '../utils/blockTags'
+import { timestampToDateStr } from 'firmcore/src/helpers/date'
+import ConfirmDialog from './ConfirmDialog'
+import { shortBlockId } from '../helpers/hashDisplay'
+import { selectCurrentAccount } from '../global/slices/accounts'
+import { confirmBlock, type ConfirmBlockArgs } from '../global/slices/chains'
+import { setStatusAlert, unsetAlert } from '../global/slices/status'
 
 const BlockTabs = styled(Tabs)({
   '& .MuiButtonBase-root': {
-    textTransform: 'none',
+    textTransform: 'none'
   }
-});
+})
 
-export default function FirmBlocks() {
-  const { finalized, proposed, headBlock, routeMatch, chain } = useLatestBlocks();
-  const selectedBlockId = getRouteParam(routeMatch, 'block', '');
-  const dispatch = useAppDispatch();
-  const [confirmOpen, setConfirmOpen] = useState<boolean>(false);
-  const accountAddr = useAppSelector(selectCurrentAccount);
+export default function FirmBlocks () {
+  const { finalized, proposed, headBlock, routeMatch, chain } = useLatestBlocks()
+  const selectedBlockId = getRouteParam(routeMatch, 'block', '')
+  const dispatch = useAppDispatch()
+  const [confirmOpen, setConfirmOpen] = useState<boolean>(false)
+  const accountAddr = useAppSelector(selectCurrentAccount)
 
   const [block, confirmText] = useMemo(() => {
-    if (selectedBlockId.length) {
-      let bl = finalized.find((bl) => bl.id === selectedBlockId);
-      if (!bl) {
-        bl = proposed.find((bl) => bl.id === selectedBlockId);
+    if (selectedBlockId.length > 0) {
+      let bl = finalized.find((bl) => bl.id === selectedBlockId)
+      if (bl == null) {
+        bl = proposed.find((bl) => bl.id === selectedBlockId)
       }
-      return bl ? [bl, confirmationsText(bl)] : [undefined, undefined];
+      return (bl != null) ? [bl, confirmationsText(bl)] : [undefined, undefined]
     } else {
-      return [undefined, undefined];
+      return [undefined, undefined]
     }
-  }, [finalized, proposed, selectedBlockId]);
+  }, [finalized, proposed, selectedBlockId])
 
-  function selectBlock(tabValue: string) {
-    dispatch(setLocation(`/chains/${chain?.address ?? ''}/blocks/${tabValue}`));
-  }
+  const selectBlock = useCallback((tabValue: string) => {
+    dispatch(setLocation(`/chains/${chain?.address ?? ''}/blocks/${tabValue}`))
+  }, [chain?.address, dispatch]);
 
   useEffect(() => {
-    if (!selectedBlockId.length && headBlock) {
-      selectBlock(headBlock.id);
+    if (selectedBlockId.length === 0 && (headBlock != null)) {
+      selectBlock(headBlock.id)
     }
-  }, [selectedBlockId]);
+  }, [headBlock, selectBlock, selectedBlockId])
 
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: string) => {
-    selectBlock(newValue);
-  }, []);
+    selectBlock(newValue)
+  }, [selectBlock])
 
-  const handleBlIdCopy = useCopyCallback(dispatch, selectedBlockId);
+  const handleBlIdCopy = useCopyCallback(dispatch, selectedBlockId)
 
   const onConfirmClick = useCallback(() => {
-    setConfirmOpen(true);
+    setConfirmOpen(true)
   }, [])
 
   const onConfirmAccept = useCallback(async (args: ConfirmBlockArgs) => {
     // TODO: Show error if not enough information (like threshold not set)
-    setConfirmOpen(false);
+    setConfirmOpen(false)
     try {
       // TODO: Spinner
       dispatch(setStatusAlert({
         status: 'info',
         msg: `Confirming block ${shortBlockId(args.blockId)}`
-      }));
+      }))
 
-      await dispatch(confirmBlock(args)).unwrap();
-      dispatch(unsetAlert());
-    } catch(err) {
-      console.log(err);
-      const msg = typeof err === 'object' && err && 'message' in err ? err.message : err;
+      await dispatch(confirmBlock(args)).unwrap()
+      dispatch(unsetAlert())
+    } catch (err) {
+      console.log(err)
+      const msg = typeof err === 'object' && (err != null) && 'message' in err ? err.message : err
       dispatch(setStatusAlert({
         status: 'error',
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         msg: `Failed Confirming a block. Error: ${msg}`
-      }));
+      }))
     }
+  }, [dispatch])
 
-  }, []);
-
-  function renderLabel(num: number, tags: string, date: string) {
+  function renderLabel (num: number, tags: string, date: string) {
     return (
       <>
         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
@@ -93,15 +93,15 @@ export default function FirmBlocks() {
           {tags}
         </Typography>
         <Typography variant="h5" component="div">
-          {date}          
+          {date}
         </Typography>
       </>
     )
   }
 
-  function renderBlockTabs() {
+  function renderBlockTabs () {
     return [...finalized, ...proposed].reverse().map((bl) => {
-      const tagStr = blockTagsStr(bl.tags);
+      const tagStr = blockTagsStr(bl.tags)
       return (
         <Tab
           key={bl.id}
@@ -109,39 +109,39 @@ export default function FirmBlocks() {
           value={bl.id}
         />
       )
-    });
+    })
   }
 
-  function renderMessages() {
-    if (!block) {
-      return;
-    } 
+  function renderMessages () {
+    if (block == null) {
+      return
+    }
     const msgs = Object.values(block.msgs).map((msg, index) => {
-      const typeInfo = msgTypes[msg.name];
-      const Component = typeInfo.displayComponent;
-      if (Component) {
+      const typeInfo = msgTypes[msg.name]
+      const Component = typeInfo.displayComponent
+      if (Component != null) {
         return (
           <Grid item key={index}>
-            <Component msgNumber={index+1} msg={msg}/>
+            <Component msgNumber={index + 1} msg={msg}/>
           </Grid>
-        );
+        )
       } else {
-        return null;
+        return null
       }
-    });
+    })
 
     return (
-      <Grid container spacing={4} sx={{ mt: 0, paddingRight: 2}}>
+      <Grid container spacing={4} sx={{ mt: 0, paddingRight: 2 }}>
         {msgs}
       </Grid>
-    );
+    )
   }
 
   return (
     <>
       <Box sx={{ width: '100%', margins: 'auto' }}>
         <BlockTabs
-          value={selectedBlockId.length ? selectedBlockId : undefined}
+          value={selectedBlockId.length > 0 ? selectedBlockId : undefined}
           onChange={handleTabChange}
           // centered
           variant="scrollable"
@@ -153,7 +153,7 @@ export default function FirmBlocks() {
       </Box>
 
       <Grid container spacing={2} justifyContent='space-between' sx={{ mt: 1 }}>
-        {block &&
+        {(block != null) &&
           <Grid item xs>
             <Stack direction="row" spacing={1}>
               <Typography component="span" color="text.secondary">
@@ -166,7 +166,7 @@ export default function FirmBlocks() {
           </Grid>
         }
 
-        {block &&
+        {(block != null) &&
           <Grid item xs>
             <Typography component="span" color="text.secondary">
               Messages:
@@ -177,10 +177,10 @@ export default function FirmBlocks() {
           </Grid>
         }
 
-        { confirmText &&
+        { (confirmText != null) &&
           <Grid item xs>
             <Typography component="span" color="text.secondary">
-              Confirmations:  
+              Confirmations:
             </Typography>
             <span> </span>
             <Typography component="span" color={confirmText.color}>
@@ -189,7 +189,7 @@ export default function FirmBlocks() {
           </Grid>
         }
 
-        {block &&
+        {(block != null) &&
           <Grid item>
             {/* <Button size="large">Browse</Button> */}
             <Button size="large" sx={{ ml: '2em' }} onClick={onConfirmClick}>Confirm</Button>
@@ -200,17 +200,18 @@ export default function FirmBlocks() {
 
       {renderMessages()}
 
-      {block && accountAddr && chain &&
+      {(block != null) && accountAddr !== undefined && (chain != null) &&
         <ConfirmDialog
           open={confirmOpen}
           block={block}
           confirmerAddress={accountAddr}
           chainAddr={chain.address}
-          onReject={() => setConfirmOpen(false)}
+          onReject={() => { setConfirmOpen(false) }}
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
           onAccept={onConfirmAccept}
         />
       }
 
     </>
-  );
+  )
 }

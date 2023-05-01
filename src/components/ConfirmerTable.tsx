@@ -1,36 +1,35 @@
-import * as React from 'react';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import { Link } from '@mui/material';
-import { styled } from '@mui/material/styles';
-import { shortenedAddr } from '../helpers/hashDisplay';
-import { Account, Address, Confirmer } from 'firmcore';
+import * as React from 'react'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import Paper from '@mui/material/Paper'
+import { Link } from '@mui/material'
+import { styled } from '@mui/material/styles'
+import { shortenedAddr } from '../helpers/hashDisplay'
+import { type Account, type Address, type Confirmer } from 'firmcore'
 
 const AccountCell = styled(TableCell)({
   width: '21em',
   maxWidth: '21em',
   overflow: 'hidden',
-  textOverflow: 'ellipsis',
-});
+  textOverflow: 'ellipsis'
+})
 
-type OwnProps = {
-  confirmers: Confirmer[],
-  accounts: Record<Address, Account>,
-};
+interface OwnProps {
+  confirmers: Confirmer[]
+  accounts: Record<Address, Account>
+}
 
-export default function ConfirmerTable({ confirmers, accounts }: OwnProps) {
-
-  function renderName(conf: Confirmer) {
-    const account = accounts[conf.address];
-    if (account?.name?.length) {
-      return account.name;
+export default function ConfirmerTable ({ confirmers, accounts }: OwnProps) {
+  function renderName (conf: Confirmer) {
+    const account = accounts[conf.address]
+    if (account?.name !== undefined && account.name.length > 0) {
+      return account.name
     } else {
-      return conf.address;
+      return conf.address
     }
   }
 
@@ -61,5 +60,5 @@ export default function ConfirmerTable({ confirmers, accounts }: OwnProps) {
         </TableBody>
       </Table>
     </TableContainer>
-  );
+  )
 }

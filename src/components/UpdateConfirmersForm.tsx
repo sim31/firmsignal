@@ -1,11 +1,12 @@
-import { Button, Checkbox, FormControlLabel, FormGroup, IconButton, Link, Stack, styled, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
+import React from 'react';
+import { Button, Checkbox, FormControlLabel, FormGroup, IconButton, Link, Stack, styled, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material'
 
-function createData(
+function createData (
   address: string,
   name: string,
-  weight: number,
+  weight: number
 ) {
-  return { address, name, weight };
+  return { address, name, weight }
 }
 
 const rows = [
@@ -13,18 +14,17 @@ const rows = [
   createData('0x199d5ed7f45f4ee35960cf22eade2076e95b253f', 'Tadas', 1),
   createData('0x2e08451b79a01cda253811e45719ceb42640c20d', 'Tom', 1),
   createData('0x4fabb145d64652a948d72533023f6e7a623c7c53', 'Dan', 1),
-  createData('0x4fabb145d64652a948d72533023f6e7a623c7c53', '', 1),
-];
+  createData('0x4fabb145d64652a948d72533023f6e7a623c7c53', '', 1)
+]
 
 const AccountCell = styled(TableCell)({
   width: '21em',
   maxWidth: '21em',
   overflow: 'hidden',
-  textOverflow: 'ellipsis',
-});
+  textOverflow: 'ellipsis'
+})
 
-export default function UpdateConfirmersForm() {
-
+export default function UpdateConfirmersForm () {
   return (
     <Stack>
       <TextField
@@ -58,7 +58,7 @@ export default function UpdateConfirmersForm() {
               >
                 <Checkbox sx={{ mt: 0.5 }}></Checkbox>
                 <AccountCell component="th" scope="row">
-                  <Link href="https://test">{row.name && row.name.length ? row.name : row.address}</Link>
+                  <Link href="https://test">{row.name.length > 0 ? row.name : row.address}</Link>
                 </AccountCell>
                 <TableCell align="right">{row.weight}</TableCell>
               </TableRow>

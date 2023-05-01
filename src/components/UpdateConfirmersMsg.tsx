@@ -1,37 +1,35 @@
-import { Link, styled, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
+import React from 'react'
+import { Link, styled, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
 
-
-function createData(
+function createData (
   address: string,
   name: string,
-  weight: number,
+  weight: number
 ) {
-  return { address, name, weight };
+  return { address, name, weight }
 }
-
 
 const rows = [
   createData('0xb3a3762db7ce0544b58569d5bd35a4b9284a6e96', 'Jerry', 2),
   createData('0x199d5ed7f45f4ee35960cf22eade2076e95b253f', 'Tadas', 1),
   createData('0x2e08451b79a01cda253811e45719ceb42640c20d', 'Tom', 1),
   createData('0x4fabb145d64652a948d72533023f6e7a623c7c53', 'Dan', 1),
-  createData('0x4fabb145d64652a948d72533023f6e7a623c7c53', '', 1),
-];
+  createData('0x4fabb145d64652a948d72533023f6e7a623c7c53', '', 1)
+]
 
 const rowsRemoved = [
-  createData('0xb3a3762db7ce0544b58569d5bd35a4b9284a6e96', 'Will', 2),
-];
+  createData('0xb3a3762db7ce0544b58569d5bd35a4b9284a6e96', 'Will', 2)
+]
 
 const AccountCell = styled(TableCell)({
   width: '21em',
   maxWidth: '21em',
   overflow: 'hidden',
-  textOverflow: 'ellipsis',
-});
+  textOverflow: 'ellipsis'
+})
 
-export default function UpdateConfirmersMsg() {
-
-  function renderHeadCell(content: string) {
+export default function UpdateConfirmersMsg () {
+  function renderHeadCell (content: string) {
     return (
       <TableCell><b>{content}</b></TableCell>
     )
@@ -58,7 +56,7 @@ export default function UpdateConfirmersMsg() {
                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
               >
                 <AccountCell component="th" scope="row">
-                  <Link href="https://test">{row.name && row.name.length ? row.name : row.address}</Link>
+                  <Link href="https://test">{row.name.length > 0 ? row.name : row.address}</Link>
                 </AccountCell>
                 <TableCell align="right">{row.weight}</TableCell>
               </TableRow>
@@ -83,7 +81,7 @@ export default function UpdateConfirmersMsg() {
                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
               >
                 <AccountCell component="th" scope="row">
-                  <Link href="https://test">{row.name && row.name.length ? row.name : row.address}</Link>
+                  <Link href="https://test">{row.name.length > 0 ? row.name : row.address}</Link>
                 </AccountCell>
                 <TableCell align="right">{row.weight}</TableCell>
               </TableRow>
@@ -92,5 +90,5 @@ export default function UpdateConfirmersMsg() {
         </Table>
       </TableContainer>
     </>
-  );
+  )
 }

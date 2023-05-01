@@ -1,40 +1,38 @@
-import React, { useCallback, useState } from 'react';
-import Box from '@mui/material/Box';
-import Container from '@mui/material/Container';
-import Paper from '@mui/material/Paper';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
-import IconButton from '@mui/material/IconButton';
-import Stack from '@mui/material/Stack';
-import { useImmer } from 'use-immer';
-import useIncrementingId from '../hooks/useIncrementingId';
-import { useAppDispatch } from '../global/hooks';
-import { createChain } from '../global/slices/chains';
-import { setLocation } from '../global/slices/appLocation';
-import { setStatusAlert, unsetAlert } from '../global/slices/status';
-import { AccountWithAddress, EFConstructorArgs } from 'firmcore';
-import { Overwrite } from 'utility-types';
+import React, { useCallback, useState } from 'react'
+import Box from '@mui/material/Box'
+import Container from '@mui/material/Container'
+import Paper from '@mui/material/Paper'
+import Button from '@mui/material/Button'
+import Typography from '@mui/material/Typography'
+import TextField from '@mui/material/TextField'
+import IconButton from '@mui/material/IconButton'
+import Stack from '@mui/material/Stack'
+import { useImmer } from 'use-immer'
+import useIncrementingId from '../hooks/useIncrementingId'
+import { useAppDispatch } from '../global/hooks'
+import { createChain } from '../global/slices/chains'
+import { setLocation } from '../global/slices/appLocation'
+import { setStatusAlert, unsetAlert } from '../global/slices/status'
+import type { AccountWithAddress, EFConstructorArgs } from 'firmcore'
+import type { Overwrite } from 'utility-types'
+import { type EmotionJSX } from '@emotion/react/types/jsx-namespace'
 
-type ConfirmerEntry = Overwrite<
-  AccountWithAddress,
-  { id: string, extAccounts: string }
->;
+type ConfirmerEntry = Overwrite<AccountWithAddress, { id: string, extAccounts: string }>
 
-export default function CreateChain() {
+export default function CreateChain (): EmotionJSX.Element {
   const dispatch = useAppDispatch();
   const [name, setName] = useState('');
   const [symbol, setSymbol] = useState('');
-  const newConfirmerId = useIncrementingId('confirmer'); 
+  const newConfirmerId = useIncrementingId('confirmer');
 
   const newConfirmerEntry = useCallback<() => ConfirmerEntry>(() => {
     return {
       id: newConfirmerId(),
       address: '',
       name: '',
-      extAccounts: '',
+      extAccounts: ''
     }
-  }, [newConfirmerId]);
+  }, [newConfirmerId])
 
   const [confirmers, updateConfirmers] = useImmer<Record<string, ConfirmerEntry>>(() => {
     const conf = newConfirmerEntry();
@@ -43,13 +41,11 @@ export default function CreateChain() {
     }
   });
 
-  const onNameChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+  const onNameChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
   }, [setName]);
 
-  const onSymbolChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+  const onSymbolChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setSymbol(event.target.value);
   }, [setSymbol]);
 
@@ -60,6 +56,7 @@ export default function CreateChain() {
       confirmerId: string
     ) => {
       updateConfirmers(confirmers => {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         confirmers[confirmerId]![property] = value.toString();
       });
     },
@@ -78,7 +75,7 @@ export default function CreateChain() {
 
   const onRemoveConfirmer = useCallback(
     (confirmerId: string) => {
-      updateConfirmers(confirmers =>{
+      updateConfirmers(confirmers => {
         delete confirmers[confirmerId];
       });
     },
@@ -101,38 +98,39 @@ export default function CreateChain() {
               ...c,
               id: 0,
               extAccounts: {
-                'ipns': c.extAccounts
+                ipns: c.extAccounts
               }
             }
-        });
+          });
         const args: EFConstructorArgs = {
           confirmers: confs,
-          name, symbol,
+          name,
+          symbol,
         };
         const chain = await dispatch(createChain(args)).unwrap();
         dispatch(unsetAlert());
         dispatch(setLocation(`/chains/${chain.address}`));
-      } catch(err) {
+      } catch (err) {
         console.log(err);
-        const msg = typeof err === 'object' && err && 'message' in err ? err.message : err;
+        const msg = typeof err === 'object' && err !== null && 'message' in err ? err.message : err;
         dispatch(setStatusAlert({
           status: 'error',
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           msg: `Failed creating new chain. Error: ${msg}`
         }));
       }
     },
-    [confirmers],
+    [confirmers, dispatch, name, symbol]
   )
-  
 
-  function renderConfirmers() {
+  function renderConfirmers (): EmotionJSX.Element[] {
     return Object.values(confirmers).map((confirmer) => {
       return (
         <Stack direction="row" spacing={1} key={confirmer.id}>
-          <IconButton 
+          <IconButton
             aria-label="delete"
             sx={{ padding: 0, mt: '0.8em', mr: '0.5em' }}
-            onClick={() => onRemoveConfirmer(confirmer.id)}
+            onClick={() => { onRemoveConfirmer(confirmer.id) }}
           >
             x
           </IconButton>
@@ -142,7 +140,7 @@ export default function CreateChain() {
             variant="standard"
             sx={{ width: '20em' }}
             value={confirmer.name}
-            onChange={e => onConfirmerChange(e.target.value, 'name', confirmer.id)}
+            onChange={e => { onConfirmerChange(e.target.value, 'name', confirmer.id) }}
           />
           <TextField
             required
@@ -150,14 +148,14 @@ export default function CreateChain() {
             variant="standard"
             fullWidth
             value={confirmer.address}
-            onChange={e => onConfirmerChange(e.target.value, 'address', confirmer.id)}
+            onChange={e => { onConfirmerChange(e.target.value, 'address', confirmer.id) }}
           />
           <TextField
             label="IPNS address"
             variant="standard"
             fullWidth
             value={confirmer.extAccounts}
-            onChange={e => onConfirmerChange(e.target.value, 'extAccounts', confirmer.id)}
+            onChange={e => { onConfirmerChange(e.target.value, 'extAccounts', confirmer.id) }}
           />
         </Stack>
       );
@@ -203,7 +201,6 @@ export default function CreateChain() {
 
           <Box
             m={1}
-           //margin
             display="flex"
             justifyContent="flex-end"
             alignItems="flex-end"
@@ -212,6 +209,7 @@ export default function CreateChain() {
               size="large"
               color="primary"
               sx={{ mr: 2, fontSize: 18 }}
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onClick={onSubmit}
             >
               Submit
@@ -220,7 +218,6 @@ export default function CreateChain() {
 
         </Stack>
 
-        
       </Paper>
     </Container>
   );

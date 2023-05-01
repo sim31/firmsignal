@@ -1,15 +1,15 @@
-import * as React from 'react';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import { messageTagText } from '../helpers/messageTagDisplay';
+import * as React from 'react'
+import Card from '@mui/material/Card'
+import CardActions from '@mui/material/CardActions'
+import CardContent from '@mui/material/CardContent'
+import Button from '@mui/material/Button'
+import Typography from '@mui/material/Typography'
+import { messageTagText } from '../helpers/messageTagDisplay'
 
 export type MessageCreateCardProps = {
-  idStr: string;
-  title: string; // Action name
-} & React.PropsWithChildren;
+  idStr: string
+  title: string // Action name
+} & React.PropsWithChildren
 
 // Number
 // Id
@@ -17,8 +17,7 @@ export type MessageCreateCardProps = {
 // Confirmers
 // Proposals passed
 
-export default function MessageCreateCard(props: MessageCreateCardProps) {
-
+export default function MessageCreateCard (props: MessageCreateCardProps) {
   return (
     <Card raised>
 
@@ -30,7 +29,7 @@ export default function MessageCreateCard(props: MessageCreateCardProps) {
           {messageTagText(props.idStr)}
         </Typography>
         <Typography variant="h5" component="div" sx={{ mb: 2 }}>
-          {props.title}          
+          {props.title}
         </Typography>
 
         {props.children}
@@ -41,5 +40,5 @@ export default function MessageCreateCard(props: MessageCreateCardProps) {
         <Button>Propose</Button>
       </CardActions> */}
     </Card>
-  );
+  )
 }

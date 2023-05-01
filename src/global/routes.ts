@@ -1,18 +1,18 @@
 import createMatcher from 'feather-route-matcher'
-import CreateChain from '../components/CreateChain';
-import NotFoundError from '../components/Errors/NotFoundError';
-import FirmChain from '../components/FirmChain';
-import FirmState from '../components/FirmState';
-import FirmBlocks from '../components/FirmBlocks';
-import CreateBlock from '../components/CreateBlock';
- 
+import CreateChain from '../components/CreateChain'
+import NotFoundError from '../components/Errors/NotFoundError'
+import FirmChain from '../components/FirmChain'
+import FirmState from '../components/FirmState'
+import FirmBlocks from '../components/FirmBlocks'
+import CreateBlock from '../components/CreateBlock'
+
 const rootRouteMatcher = createMatcher({
   '/newChain': CreateChain,
   '/chains/:chainId': FirmChain,
   '/chains/:chainId/:tab': FirmChain,
   '/chains/:chainId/:tab/*': FirmChain,
   '/': null,
-  '/*': NotFoundError,
+  '/*': NotFoundError
 })
 
 const chainRouteMatcher = createMatcher({
@@ -22,7 +22,7 @@ const chainRouteMatcher = createMatcher({
   '/chains/:chainId/blocks': FirmBlocks,
   '/chains/:chainId/blocks/:block': FirmBlocks,
   '/chains/:chainId/newBlock': CreateBlock,
-  '*': NotFoundError,
-});
+  '*': NotFoundError
+})
 
-export { rootRouteMatcher, chainRouteMatcher };
+export { rootRouteMatcher, chainRouteMatcher }

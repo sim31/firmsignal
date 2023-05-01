@@ -1,9 +1,10 @@
-import { Container, Paper, Typography } from "@mui/material";
-import { useAppSelector } from "../../global/hooks";
-import { selectLocation } from "../../global/slices/appLocation";
+import React from 'react'
+import { Container, Paper, Typography } from '@mui/material'
+import { useAppSelector } from '../../global/hooks'
+import { selectLocation } from '../../global/slices/appLocation'
 
-export default function NotFoundError() {
-  const path = useAppSelector(selectLocation).pathname;
+export default function NotFoundError () {
+  const path = useAppSelector(selectLocation).pathname
 
   return (
     <Container component="main" sx={{ mb: 4 }}>

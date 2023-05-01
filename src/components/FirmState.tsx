@@ -1,51 +1,51 @@
-import { Card, Grid, Link, Stack, Typography } from '@mui/material';
-import * as React from 'react';
-import BalancesTable from './BalancesTable';
-import BlockCard from './BlockCard';
-import ConfirmerTable from './ConfirmerTable';
-import StateInfoCard from './StateInfoCard';
-import { useLatestBlocks } from '../global/hooks';
-import { useMemo } from 'react';
-import { Account, Address } from 'firmcore';
+import { Card, Grid, Link, Stack, Typography } from '@mui/material'
+import * as React from 'react'
+import BalancesTable from './BalancesTable'
+import BlockCard from './BlockCard'
+import ConfirmerTable from './ConfirmerTable'
+import StateInfoCard from './StateInfoCard'
+import { useLatestBlocks } from '../global/hooks'
+import { useMemo } from 'react'
+import { type Account, type Address } from 'firmcore'
 
-export default function FirmState() {
-  const { chain, headBlock, finalized, proposed  } = useLatestBlocks();
+export default function FirmState () {
+  const { chain, headBlock, finalized, proposed } = useLatestBlocks()
 
-  const confSet = headBlock?.state.confirmerSet;
-  const confStatus = headBlock?.state.confirmationStatus;
+  const confSet = headBlock?.state.confirmerSet
+  const confStatus = headBlock?.state.confirmationStatus
   // TODO: Move to some util or hook
   const accounts = useMemo(() => {
-    const acc: Record<Address, Account> = {};
-    const accountsByAddress = headBlock?.state.accountByAddress;
-    const accountsById = headBlock?.state.accountById;
-    if (accountsByAddress && accountsById) {
+    const acc: Record<Address, Account> = {}
+    const accountsByAddress = headBlock?.state.accountByAddress
+    const accountsById = headBlock?.state.accountById
+    if ((accountsByAddress != null) && (accountsById != null)) {
       for (const accountId of Object.values(accountsByAddress)) {
-        const a = accountsById[accountId];
-        if (a && a.address) {
-          acc[a.address] = a;
+        const a = accountsById[accountId]
+        if (a?.address !== undefined) {
+          acc[a.address] = a
         }
       }
     }
-    return acc;
+    return acc
   }, [headBlock])
 
-  function renderBlockList() {
-    if (chain) {
-      const allBlocks = [ ...finalized, ...proposed ];
-      allBlocks.reverse();
+  function renderBlockList () {
+    if (chain != null) {
+      const allBlocks = [...finalized, ...proposed]
+      allBlocks.reverse()
       const blockCards = allBlocks.map((bl) => {
         return (
           <Grid item key={bl.id}>
-            <BlockCard 
+            <BlockCard
               block={bl}
               // TODO: implement block tags
             />
           </Grid>
-        );
-      });
-      return blockCards;
+        )
+      })
+      return blockCards
     } else {
-      return [];
+      return []
     }
   }
 
@@ -62,12 +62,12 @@ export default function FirmState() {
             Threshold: {confSet?.threshold ?? '-'}
           </Typography>
           {
-            confSet?.confirmers ?
-            <ConfirmerTable
+            ((confSet?.confirmers) != null)
+              ? <ConfirmerTable
               confirmers={Object.values(confSet.confirmers)}
               accounts={accounts}
             />
-            : '-'
+              : '-'
           }
         </StateInfoCard>
       </Grid>
@@ -96,6 +96,5 @@ export default function FirmState() {
         </StateInfoCard>
       </Grid>
     </Grid>
-  );
-
+  )
 }

@@ -1,69 +1,69 @@
-import { EFMsg, MsgTypeName } from "firmcore";
-import UpdateConfirmersForm from "../components/UpdateConfirmersForm";
-import SetDirectoryForm from "../components/SetDirectoryForm";
-import { EmotionJSX } from "@emotion/react/types/jsx-namespace";
-import { SetDirectoryMsg } from "../components/SetDirectoryMsg";
+import { type EFMsg, type MsgTypeName } from 'firmcore'
+import UpdateConfirmersForm from '../components/UpdateConfirmersForm'
+import SetDirectoryForm from '../components/SetDirectoryForm'
+import { type EmotionJSX } from '@emotion/react/types/jsx-namespace'
+import { SetDirectoryMsg } from '../components/SetDirectoryMsg'
 
 export interface InputError {
-  what: string;
+  what: string
 }
 
-export type MsgContent = EFMsg | InputError;
+export type MsgContent = EFMsg | InputError
 
-export function isValidMsg(content: MsgContent): content is EFMsg {
+export function isValidMsg (content: MsgContent): content is EFMsg {
   if ('what' in content) {
-    return false;
+    return false
   } else {
-    return true;
+    return true
   }
 }
 
 export interface EditMsgProps {
-  id?: string;
-  msgNumber: number;
-  onChange: (msg: MsgContent) => void;
+  id?: string
+  msgNumber: number
+  onChange: (msg: MsgContent) => void
 }
 
-export type MsgEditComponent = (props: EditMsgProps) => EmotionJSX.Element;
+export type MsgEditComponent = (props: EditMsgProps) => EmotionJSX.Element
 
 export interface MsgDisplayProps {
-  id?: string;
-  msgNumber: number;
-  msg: EFMsg;
+  id?: string
+  msgNumber: number
+  msg: EFMsg
 }
 
 export type MsgDisplayComponent = (props: MsgDisplayProps) => EmotionJSX.Element
 
 export interface MsgTypeInfo {
-  title: string,
-  editComponent?: MsgEditComponent,
-  displayComponent?: MsgDisplayComponent;
+  title: string
+  editComponent?: MsgEditComponent
+  displayComponent?: MsgDisplayComponent
 };
 
 export const msgTypes: Record<MsgTypeName, MsgTypeInfo> = {
-  'efSubmitResults': {
+  efSubmitResults: {
     title: 'Breakout room results',
     editComponent: undefined
   },
-  'createAccount': {
+  createAccount: {
     title: 'Create account',
     editComponent: undefined
   },
-  'removeAccount': {
+  removeAccount: {
     title: 'Remove account',
-    editComponent: undefined,
+    editComponent: undefined
   },
-  'updateAccount': {
+  updateAccount: {
     title: 'Update account',
-    editComponent: undefined,
+    editComponent: undefined
   },
-  'updateConfirmers': {
+  updateConfirmers: {
     title: 'Update confirmers',
-    editComponent: UpdateConfirmersForm,
+    editComponent: UpdateConfirmersForm
   },
-  'setDir': {
+  setDir: {
     title: 'Set directory',
     editComponent: SetDirectoryForm,
-    displayComponent: SetDirectoryMsg,
+    displayComponent: SetDirectoryMsg
   }
-};
+}

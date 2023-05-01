@@ -1,24 +1,25 @@
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { TreeItem, TreeView } from "@mui/lab";
-import { Box, Container, Grid } from '@mui/material';
-import { Chain } from 'firmcore';
+import React from 'react'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import { TreeItem, TreeView } from '@mui/lab'
+import { Box, Container, Grid } from '@mui/material'
+import { type Chain } from 'firmcore'
 
-export type Node = {
-  name: string;
-  children: Node;
+export interface Node {
+  name: string
+  children: Node
 }
 
-export type ConfirmerHierarchyProps = {
-  chain: Chain;
+export interface ConfirmerHierarchyProps {
+  chain: Chain
 }
 
-export default function ConfirmerHierarchy() {
+export default function ConfirmerHierarchy () {
   return (
     <Grid container alignItems="center" justifyContent="center" sx={{ mt: 4 }}>
       <Grid item>
-        <TreeView 
-          expanded={['1', '3', '4', '5', '2', ]}
+        <TreeView
+          expanded={['1', '3', '4', '5', '2']}
           defaultCollapseIcon={<ExpandMoreIcon />}
           defaultExpandIcon={<ChevronRightIcon />}
         >

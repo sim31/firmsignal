@@ -1,42 +1,41 @@
-import { Box, Container, Tab, Tabs, Typography } from '@mui/material';
-import * as React from 'react';
-import { useAppDispatch, useAppSelector, useRouteMatcher } from '../global/hooks';
-import { chainRouteMatcher, rootRouteMatcher } from '../global/routes';
-import { setLocation } from '../global/slices/appLocation';
-import { selectChain, selectChainState } from '../global/slices/chains';
-import NotFoundError from './Errors/NotFoundError';
-import { useEffect } from 'react';
-import { getRouteParam } from '../helpers/routes';
-import { shortAddress } from '../helpers/hashDisplay';
+import { Box, Container, Tab, Tabs, Typography } from '@mui/material'
+import * as React from 'react'
+import { useAppDispatch, useAppSelector, useRouteMatcher } from '../global/hooks'
+import { chainRouteMatcher, rootRouteMatcher } from '../global/routes'
+import { setLocation } from '../global/slices/appLocation'
+import { selectChain, selectChainState } from '../global/slices/chains'
+import NotFoundError from './Errors/NotFoundError'
+import { useEffect } from 'react'
+import { getRouteParam } from '../helpers/routes'
+import { shortAddress } from '../helpers/hashDisplay'
 
-export default function FirmChain() {
-  const routeMatch = useRouteMatcher(chainRouteMatcher);
-  const rootRouteMatch = useRouteMatcher(rootRouteMatcher);
-  const tabValue = getRouteParam(rootRouteMatch, 'tab', '');
-  const address = getRouteParam(routeMatch, 'chainId', '');
-  const chain = useAppSelector(state => selectChain(state, address));
+export default function FirmChain () {
+  const routeMatch = useRouteMatcher(chainRouteMatcher)
+  const rootRouteMatch = useRouteMatcher(rootRouteMatcher)
+  const tabValue = getRouteParam(rootRouteMatch, 'tab', '')
+  const address = getRouteParam(routeMatch, 'chainId', '')
+  const chain = useAppSelector(state => selectChain(state, address))
   const chainState = useAppSelector(state =>
-    chain && selectChainState(state, chain.address));
-  const dispatch = useAppDispatch();
+    (chain != null) && selectChainState(state, chain.address))
+  const dispatch = useAppDispatch()
 
-  function setTab(tabValue: string) {
-    dispatch(setLocation(`/chains/${address}/${tabValue}`));
-  }
+  const setTab = React.useCallback((tabValue: string) => {
+    dispatch(setLocation(`/chains/${address}/${tabValue}`))
+  }, [address, dispatch]);
 
   useEffect(() => {
-    if (!tabValue.length) {
-      setTab('overview');
+    if (tabValue.length === 0) {
+      setTab('overview')
     }
-  }, [])
-  
+  }, [setTab, tabValue.length])
 
   const handleTabChange = React.useCallback((event: React.SyntheticEvent, newValue: string) => {
-    setTab(newValue);
-  }, []);
-  
-  const Component = routeMatch.value;
+    setTab(newValue)
+  }, [setTab])
 
-  if (!chain) {
+  const Component = routeMatch.value
+
+  if (chain == null) {
     return <NotFoundError />
   }
 
@@ -50,7 +49,7 @@ export default function FirmChain() {
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         {/* TODO: Make sure all fit on smaller screens (introduce scrollbar (will have to remove centered) on smaller viewports) */}
-        <Tabs value={tabValue.length ? tabValue : 'overview'} onChange={handleTabChange} centered>
+        <Tabs value={tabValue.length > 0 ? tabValue : 'overview'} onChange={handleTabChange} centered>
           <Tab label="Overview" value="overview" />
           <Tab label="Records" value="blocks" />
           <Tab label="New Record" value="newBlock" />
@@ -63,5 +62,5 @@ export default function FirmChain() {
         <Component />
       </Container>
     </>
-  );
+  )
 }

@@ -1,38 +1,38 @@
-import * as React from 'react';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import { TaggedBlock } from '../utils/blockTags';
-import { shortBlockId } from '../helpers/hashDisplay';
-import ShortenedBlockId from './ShortenedBlockId';
-import { useAppDispatch } from '../global/hooks';
-import { Address } from 'firmcore/src/iwallet';
-import { BlockId } from 'firmcore';
-import { useCallback } from 'react';
-import { ConfirmBlockArgs } from '../global/slices/chains';
+import * as React from 'react'
+import Button from '@mui/material/Button'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+import DialogTitle from '@mui/material/DialogTitle'
+import { type TaggedBlock } from '../utils/blockTags'
+import { shortBlockId } from '../helpers/hashDisplay'
+import ShortenedBlockId from './ShortenedBlockId'
+import { useAppDispatch } from '../global/hooks'
+import { type Address } from 'firmcore/src/iwallet'
+import { BlockId } from 'firmcore'
+import { useCallback } from 'react'
+import { type ConfirmBlockArgs } from '../global/slices/chains'
 
-export type ConfirmDialogProps = {
-  open: boolean,
-  block: TaggedBlock,
-  confirmerAddress: Address,
-  chainAddr: Address, 
-  onReject: () => void,
-  onAccept: (args: ConfirmBlockArgs) => void,
-};
+export interface ConfirmDialogProps {
+  open: boolean
+  block: TaggedBlock
+  confirmerAddress: Address
+  chainAddr: Address
+  onReject: () => void
+  onAccept: (args: ConfirmBlockArgs) => void
+}
 
-export default function ConfirmDialog(props: ConfirmDialogProps) {
-  const { open, block, confirmerAddress, onReject, onAccept, chainAddr } = props;
+export default function ConfirmDialog (props: ConfirmDialogProps) {
+  const { open, block, confirmerAddress, onReject, onAccept, chainAddr } = props
 
   const onAcceptClick = useCallback(() => {
     onAccept({
       confirmerAddr: confirmerAddress,
       blockId: block.id,
-      chainAddress: chainAddr,
-    });
-  }, [onAccept, block, confirmerAddress]);
+      chainAddress: chainAddr
+    })
+  }, [onAccept, confirmerAddress, block.id, chainAddr])
 
   return (
     <Dialog
@@ -56,5 +56,5 @@ export default function ConfirmDialog(props: ConfirmDialogProps) {
         <Button onClick={onReject}>No</Button>
       </DialogActions>
     </Dialog>
-  );
+  )
 }

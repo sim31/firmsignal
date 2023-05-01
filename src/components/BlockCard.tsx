@@ -1,21 +1,21 @@
-import * as React from 'react';
-import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import { Stack } from '@mui/material';
-import { useMemo } from 'react';
-import { useAppDispatch, useCopyCallback } from '../global/hooks';
-import { EFBlockPOD } from 'firmcore';
-import { TaggedBlock, blockTagsStr } from '../utils/blockTags';
-import { dateToStr, timestampToDate, timestampToDateStr } from 'firmcore/src/helpers/date';
-import { confirmationsText } from '../helpers/confirmationsDisplay';
-import { shortBlockId } from '../helpers/hashDisplay';
+import * as React from 'react'
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
+import CardActions from '@mui/material/CardActions'
+import CardContent from '@mui/material/CardContent'
+import Button from '@mui/material/Button'
+import Typography from '@mui/material/Typography'
+import { Stack } from '@mui/material'
+import { useMemo } from 'react'
+import { useAppDispatch, useCopyCallback } from '../global/hooks'
+import { EFBlockPOD } from 'firmcore'
+import { type TaggedBlock, blockTagsStr } from '../utils/blockTags'
+import { dateToStr, timestampToDate, timestampToDateStr } from 'firmcore/src/helpers/date'
+import { confirmationsText } from '../helpers/confirmationsDisplay'
+import { shortBlockId } from '../helpers/hashDisplay'
 
-export type BlockCardProps = {
-  block: TaggedBlock;
+export interface BlockCardProps {
+  block: TaggedBlock
 }
 
 // Number
@@ -24,27 +24,27 @@ export type BlockCardProps = {
 // Confirmers
 // Proposals passed
 
-export default function BlockCard({ block }: BlockCardProps) {
-  const dispatch = useAppDispatch();
-  const state = block.state;
+export default function BlockCard ({ block }: BlockCardProps) {
+  const dispatch = useAppDispatch()
+  const state = block.state
 
   const confirmText = useMemo(() => {
     // Genesis block does not need confirmations but it might have them
     if (block.tags[0] === 'genesis' && block.state.confirmationStatus.currentWeight === 0) {
-      return null;
+      return null
     } else {
-      return confirmationsText(block);
+      return confirmationsText(block)
     }
-  }, [block]);
+  }, [block])
 
   // TODO: Check if current user account is confirmer and confirmed this block
-  const confirmed = false;
+  const confirmed = false
 
   const dateStr = useMemo(() => {
-    return timestampToDateStr(block.timestamp);    
-  }, [block]);
+    return timestampToDateStr(block.timestamp)
+  }, [block])
 
-  const handleIdCopy = useCopyCallback(dispatch, block.id);
+  const handleIdCopy = useCopyCallback(dispatch, block.id)
 
   return (
     <Card raised sx={{ width: '21em' }}>
@@ -59,10 +59,10 @@ export default function BlockCard({ block }: BlockCardProps) {
         <Typography variant="h5" component="div">
           {dateStr}
         </Typography>
-        { confirmText &&
+        { (confirmText != null) &&
           <Box sx={{ mb: 1.5 }}>
             <Typography component="span" color="text.secondary">
-              Confirmations:  
+              Confirmations:
             </Typography>
             <span> </span>
             <Typography component="span" color={confirmText.color}>
@@ -95,5 +95,5 @@ export default function BlockCard({ block }: BlockCardProps) {
         {confirmed || block.tags[0] === 'orphaned' ? null : <Button>Confirm</Button>}
       </CardActions>
     </Card>
-  );
+  )
 }
