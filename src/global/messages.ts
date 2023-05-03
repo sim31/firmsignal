@@ -3,6 +3,7 @@ import UpdateConfirmersForm from '../components/UpdateConfirmersForm'
 import SetDirectoryForm from '../components/SetDirectoryForm'
 import { type EmotionJSX } from '@emotion/react/types/jsx-namespace'
 import { SetDirectoryMsg } from '../components/SetDirectoryMsg'
+import SubmitEFResultsForm from '../components/SubmitEFResultsForm'
 
 export interface InputError {
   what: string
@@ -42,8 +43,8 @@ export interface MsgTypeInfo {
 
 export const msgTypes: Record<MsgTypeName, MsgTypeInfo> = {
   efSubmitResults: {
-    title: 'Breakout room results',
-    editComponent: undefined
+    title: 'Breakout room result',
+    editComponent: SubmitEFResultsForm
   },
   createAccount: {
     title: 'Create account',
