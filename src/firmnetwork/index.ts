@@ -1,8 +1,9 @@
 import { Writable } from 'stream'
 import firmcore, { newAccountWithAddress } from 'firmcore';
-import { createDirectoryEncoderStream, CAREncoderStream, type FileLike, createFileEncoderStream } from 'ipfs-car'
+import { createDirectoryEncoderStream, CAREncoderStream, type FileLike } from 'ipfs-car'
 import type { Link } from 'multiformats/link/interface'
 import { Transform } from '@mui/icons-material';
+import browserReadableStreamToIt from 'browser-readablestream-to-it';
 
 async function * streamAsyncIterator (stream: ReadableStream) {
   // Get a lock on the stream
@@ -30,19 +31,15 @@ export default class FirmNetwork {
       'Some name'
     );
 
-    const blob1 = new Blob(['Hello world!']);
-    const carStream1 = createFileEncoderStream(blob1).pipeThrough(new CAREncoderStream())
-    const blob2 = new Blob(['hi! to you']);
-    const carStream2 = createFileEncoderStream(blob2).pipeThrough(new CAREncoderStream());
-    const files: FileLike[] = [
-      { stream: () => carStream1, name: 'hello.txt' },
-      { stream: () => carStream2, name: 'hello2.txt' },
-      // { ...blob2, name: 'acc.json' }
-
-    ];
+    const file1 = new File(['Hello world!'], 'foo1.txt', {
+      type: 'text/plain',
+    });
+    const file2 = new File(['hi! to you'], 'foo2.txt', {
+      type: 'text/plain',
+    });
 
     let rootCID: Link<any, any, any, any> | undefined;
-    const stream = createDirectoryEncoderStream(files)
+    const stream = createDirectoryEncoderStream([file1, file2])
       .pipeThrough(new TransformStream({
         transform (block, controller) {
           rootCID = block.cid;
@@ -50,15 +47,31 @@ export default class FirmNetwork {
           controller.enqueue(block);
         }
       }))
-      .pipeThrough(new CAREncoderStream())
-      .pipeThrough(new TransformStream({
-        transform (block, controler) {
-          // console.log('block2: ', block);
-          for (const byte of block) {
-            controler.enqueue(byte);
-          }
-        }
-      }))
+      .pipeThrough(new CAREncoderStream());
+      // .pipeThrough(new TransformStream({
+      //   transform (block, controler) {
+      //     // console.log('block2: ', block);
+      //     for (const byte of block) {
+      //       controler.enqueue(byte);
+      //     }
+      //   }
+      // }))
+
+    // const blobParts: Blob[] = [];
+    // await stream.pipeTo(new WritableStream({
+    //   write (chunk) {
+    //     for (const byte of chunk) {
+    //       blobParts.push(byte);
+    //     }
+    //   }
+    // }));
+
+    // const carFile = new File(blobParts, 'file');
+    const it = browserReadableStreamToIt(stream)
+    const blobParts: BlobPart[] = [];
+    for await (const blob of it) {
+      blobParts.push(blob);
+    }
 
     // for await (const block of streamAsyncIterator(stream)) {
     //   console.log('block3: ', block);
@@ -87,7 +100,7 @@ export default class FirmNetwork {
       'ipfs://localhost/',
       {
         method: 'post',
-        body: stream,
+        body: new Blob(blobParts, { type: 'application/car' }),
         headers: {
           'Content-Type': 'application/vnd.ipld.car',
         },
@@ -98,6 +111,6 @@ export default class FirmNetwork {
     console.log('root cid: ', rootCID?.toString());
 
     const url = response.headers.get('Location');
-    console.log('status: ', response.status, 'url: ', url, 'results: ', (await response.body?.getReader().read())?.value);
+    console.log('status: ', response.status, 'url: ', url, 'results: ', (await response.body?.getReader().read())?.value, 'response: ', response);
   }
 }
