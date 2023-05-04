@@ -65,7 +65,7 @@ export default function SubmitEFResultsForm (props: EditMsgProps) {
 
   return (
     <MessageCreateCard idStr={idStr} title={typeInfo.title}>
-      <Stack>
+      <Stack spacing={2}>
 
         {renderTextFields()}
 
