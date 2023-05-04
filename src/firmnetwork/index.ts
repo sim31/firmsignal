@@ -1,27 +1,8 @@
-import { Writable } from 'stream'
 import firmcore, { newAccountWithAddress } from 'firmcore';
-import { createDirectoryEncoderStream, CAREncoderStream, type FileLike } from 'ipfs-car'
-import type { Link } from 'multiformats/link/interface'
-import { Transform } from '@mui/icons-material';
-import browserReadableStreamToIt from 'browser-readablestream-to-it';
-
-async function * streamAsyncIterator (stream: ReadableStream) {
-  // Get a lock on the stream
-  const reader = stream.getReader();
-
-  try {
-    while (true) {
-      // Read from the stream
-      const { done, value } = await reader.read();
-      // Exit if we're done
-      if (done) return;
-      // Else yield the chunk
-      yield value;
-    }
-  } finally {
-    reader.releaseLock();
-  }
-}
+import { CarWriter } from '@ipld/car/writer'
+import { importer, type FileCandidate, type DirectoryCandidate } from 'ipfs-unixfs-importer'
+import browserReadableStreamToIt from 'browser-readablestream-to-it'
+import { MemoryBlockstore } from 'blockstore-core';
 
 export default class FirmNetwork {
   async init () {
@@ -37,80 +18,81 @@ export default class FirmNetwork {
     const file2 = new File(['hi! to you'], 'foo2.txt', {
       type: 'text/plain',
     });
+    const fileInDir = new File([JSON.stringify(acc)], 'acc.json');
+    const accChanged = {
+      ...acc,
+      extAccounts: {
+        ...acc.extAccounts,
+        somePlat: 'ddd',
+      }
+    }
+    const file2InDir = new File([JSON.stringify(accChanged)], 'accChanged.json');
 
-    let rootCID: Link<any, any, any, any> | undefined;
-    const stream = createDirectoryEncoderStream([file1, file2])
-      .pipeThrough(new TransformStream({
-        transform (block, controller) {
-          rootCID = block.cid;
-          // console.log('block1: ', block);
-          controller.enqueue(block);
-        }
-      }))
-      .pipeThrough(new CAREncoderStream());
-      // .pipeThrough(new TransformStream({
-      //   transform (block, controler) {
-      //     // console.log('block2: ', block);
-      //     for (const byte of block) {
-      //       controler.enqueue(byte);
-      //     }
-      //   }
-      // }))
+    const encoder = new TextEncoder();
 
-    // const blobParts: Blob[] = [];
-    // await stream.pipeTo(new WritableStream({
-    //   write (chunk) {
-    //     for (const byte of chunk) {
-    //       blobParts.push(byte);
-    //     }
-    //   }
-    // }));
+    const fileEntries: Array<FileCandidate | DirectoryCandidate> = [
+      {
+        path: 'foo1.txt',
+        content: encoder.encode('Hello world!'),
+      },
+      {
+        path: 'foo2.txt',
+        content: encoder.encode('hi! to you'),
+      },
+      {
+        path: 'accounts',
+      },
+      {
+        path: 'accounts/acc.json',
+        content: encoder.encode(JSON.stringify(acc))
+      },
+      {
+        path: 'accounts/accChanged.json',
+        content: encoder.encode(JSON.stringify(accChanged))
+      }
+    ]
 
-    // const carFile = new File(blobParts, 'file');
-    const it = browserReadableStreamToIt(stream)
-    const blobParts: BlobPart[] = [];
-    for await (const blob of it) {
-      blobParts.push(blob);
+    const blockstore = new MemoryBlockstore();
+
+    const unixFsEntries = []
+    for await (const entry of importer(fileEntries, blockstore)) {
+      unixFsEntries.push(entry)
     }
 
-    // for await (const block of streamAsyncIterator(stream)) {
-    //   console.log('block3: ', block);
-    // }
+    const rootEntry = unixFsEntries[unixFsEntries.length - 1];
+    if (rootEntry !== undefined) {
+      const rootCID = rootEntry.cid;
+      console.log('root CID: ', rootCID.toString());
 
-    // const reader = stream.getReader();
-    // const block = await reader.read();
-    // const file = new Blob(['Hello ipfs-car!'])
-    // const carStream = createFileEncoderStream(file).pipeThrough(new CAREncoderStream())
-
-    // const response = await fetch(
-    //   'ipfs://localhost/',
-    //   {
-    //     method: 'post',
-    //     body: carStream,
-    //     headers: {
-    //       'Content-Type': 'application/vnd.ipld.car',
-    //     },
-    //     duplex: 'half',
-    //   }
-    // );
-
-    console.log('root cid: ', rootCID?.toString());
-
-    const response = await fetch(
-      'ipfs://localhost/',
-      {
-        method: 'post',
-        body: new Blob(blobParts, { type: 'application/car' }),
-        headers: {
-          'Content-Type': 'application/vnd.ipld.car',
-        },
-        duplex: 'half',
+      const { writer, out } = CarWriter.create(rootCID);
+      for await (const block of blockstore.getAll()) {
+        writer.put({ ...block, bytes: block.block });
       }
-    );
+      writer.close()
 
-    console.log('root cid: ', rootCID?.toString());
+      const carParts = new Array<Uint8Array>();
+      for await (const chunk of out) {
+        carParts.push(chunk)
+      }
+      const carFile = new Blob(carParts, {
+        type: 'application/car',
+      });
 
-    const url = response.headers.get('Location');
-    console.log('status: ', response.status, 'url: ', url, 'results: ', (await response.body?.getReader().read())?.value, 'response: ', response);
+      const response = await fetch(
+        'ipfs://localhost/',
+        {
+          method: 'post',
+          body: carFile,
+          headers: {
+            'Content-Type': 'application/vnd.ipld.car',
+          },
+          // duplex: 'half',
+        }
+      );
+
+      const resBody = await response.text();
+
+      console.log('status: ', response.status, 'results: ', resBody);
+    }
   }
 }
