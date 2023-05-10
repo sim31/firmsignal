@@ -66,9 +66,9 @@ export default class FirmNetwork {
 
       const { writer, out } = CarWriter.create(rootCID);
       for await (const block of blockstore.getAll()) {
-        writer.put({ ...block, bytes: block.block });
+        await writer.put({ ...block, bytes: block.block });
       }
-      writer.close()
+      await writer.close()
 
       const carParts = new Array<Uint8Array>();
       for await (const chunk of out) {

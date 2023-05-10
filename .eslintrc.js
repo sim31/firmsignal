@@ -8,6 +8,11 @@ module.exports = {
     'plugin:react-hooks/recommended',
     'standard-with-typescript'
   ],
+  settings: {
+    react: {
+      version: 'detect'
+    }
+  },
   overrides: [
   ],
   parserOptions: {
