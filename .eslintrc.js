@@ -27,6 +27,7 @@ module.exports = {
     '@typescript-eslint/no-dynamic-delete': 'off',
     '@typescript-eslint/comma-dangle': 'off',
     '@typescript-eslint/no-unused-vars': 'warn',
-    '@typescript-eslint/explicit-function-return-type': 'warn'
+    '@typescript-eslint/explicit-function-return-type': 'warn',
+    '@typescript-eslint/consistent-type-imports': 'off'
   }
 }
