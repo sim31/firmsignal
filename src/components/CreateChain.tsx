@@ -150,20 +150,20 @@ export default function CreateChain (): EmotionJSX.Element {
             value={confirmer.address}
             onChange={e => { onConfirmerChange(e.target.value, 'address', confirmer.id) }}
           />
-          <TextField
+          {/* <TextField
             label="IPNS address"
             variant="standard"
             fullWidth
             value={confirmer.extAccounts}
             onChange={e => { onConfirmerChange(e.target.value, 'extAccounts', confirmer.id) }}
-          />
+          /> */}
         </Stack>
       );
     });
   }
 
   return (
-    <Container component="main" maxWidth="lg" sx={{ mb: 4 }}>
+    <Container component="main" maxWidth="md" sx={{ mb: 4 }}>
       <Paper elevation={8} sx={{ my: { xs: 3, md: 6 }, p: { xs: 2, md: 3 } }}>
         <Typography component="h1" variant="h4" align="center">
           Create a New Chain
@@ -183,7 +183,7 @@ export default function CreateChain (): EmotionJSX.Element {
               onChange={onNameChange}
             />
 
-            <TextField
+            {/* <TextField
               required
               id="symbol"
               label="Symbol"
@@ -191,7 +191,7 @@ export default function CreateChain (): EmotionJSX.Element {
               sx={{ maxWidth: '8em' }}
               value={symbol}
               onChange={onSymbolChange}
-            />
+            /> */}
 
           </Stack>
 
