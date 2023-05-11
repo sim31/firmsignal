@@ -19,6 +19,8 @@ function App (): EmotionJSX.Element {
   const defaultChain = useAppSelector(selectDefaultChain)
   const alert = useAppSelector(selectStatusAlert)
 
+  // Create a wallet if there's none
+
   // Redirect to /createChain or defaultChain if location is '/'
   useEffect(() => {
     if (routeMatch.value == null) {

@@ -13,7 +13,7 @@ import { rootRouteMatcher } from '../global/routes'
 import { selectChainName, selectChainsByAddress } from '../global/slices/chains'
 import { setLocation } from '../global/slices/appLocation'
 import { getRouteParam } from '../helpers/routes'
-import { setCurrentAccount, selectDefaultAccount, selectCurrentAccount, selectAccountsByAddress } from '../global/slices/accounts'
+import { loadWallet, selectCurrentAccount } from '../global/slices/accounts'
 import { useCallback, useEffect } from 'react'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import copy from 'copy-to-clipboard'
@@ -78,9 +78,7 @@ const StyledAddrBlack = styled(ShortenedAddr)(({ theme }) => ({
 export default function FirmBar () {
   const routeMatch = useRouteMatcher(rootRouteMatcher)
   const chainsByAddr = useAppSelector(selectChainsByAddress)
-  const defaultAccount = useAppSelector(selectDefaultAccount)
   const currentAccount = useAppSelector(selectCurrentAccount)
-  const accountsByAddr = useAppSelector(selectAccountsByAddress)
   const chainId = getRouteParam(routeMatch, 'chainId', '')
   const name = useAppSelector(
     state => selectChainName(state, chainId)
@@ -89,10 +87,10 @@ export default function FirmBar () {
   const dispatch = useAppDispatch()
 
   useEffect(() => {
-    if (currentAccount === undefined && defaultAccount !== undefined) {
-      dispatch(setCurrentAccount(defaultAccount))
+    if (currentAccount === undefined) {
+      void dispatch(loadWallet());
     }
-  }, [currentAccount, defaultAccount, dispatch])
+  }, [currentAccount, dispatch])
 
   const chainValue = React.useMemo(() => {
     if (routeMatch.value == null) {
@@ -112,11 +110,6 @@ export default function FirmBar () {
     dispatch(setLocation(newLoc))
   }, [dispatch])
 
-  const handleSelectAccount = useCallback((e: SelectChangeEvent<unknown>) => {
-    const val = e.target.value as string
-    dispatch(setCurrentAccount(val))
-  }, [dispatch])
-
   const handleAccountCopy = useCopyCallback(dispatch, currentAccount)
 
   function renderMenuItems () {
@@ -134,19 +127,6 @@ export default function FirmBar () {
     return items
   }
 
-  function renderAccountItems () {
-    const items = Object.keys(accountsByAddr).map((account) => {
-      // TODO: Check if name is registered in the current chain and use that name?
-      const addr = account
-      return (
-      <MenuItem value={addr} key={addr}>
-        <StyledAddrBlack>{addr}</StyledAddrBlack>
-      </MenuItem>
-      )
-    })
-    return items
-  }
-
   function renderChainSelection (value: unknown) {
     // const text = value === 'None' ? 'Select chain' : value as string;
     let text = ''
@@ -160,11 +140,6 @@ export default function FirmBar () {
       text = value as string
     }
     return <StyledAddr>{text}</StyledAddr>
-  }
-
-  function renderAccountSelection (value: unknown) {
-    // const text = value === 'None' ? 'Select chain' : value as string;
-    return <StyledAddr>{value as string}</StyledAddr>
   }
 
   return (
@@ -214,19 +189,14 @@ export default function FirmBar () {
           </Search>
 
           {/* TODO: Render in a wayt that is clearer that this is the account */}
-          <StyledSelect
-            value={currentAccount !== undefined ? currentAccount : ''}
-            onChange={handleSelectAccount}
-            label='Account'
-            labelId='account-select'
-            renderValue={renderAccountSelection}
-            // displayEmpty
-          >
-            {renderAccountItems()}
-          </StyledSelect>
-          <IconButton sx={{ color: 'white' }} onClick={handleAccountCopy}>
-            <ContentCopyIcon />
-          </IconButton>
+          { currentAccount !== undefined &&
+            <>
+              <ShortenedAddr>{currentAccount}</ShortenedAddr>
+              <IconButton sx={{ color: 'white' }} onClick={handleAccountCopy}>
+                <ContentCopyIcon />
+              </IconButton>
+            </>
+          }
         </Toolbar>
       </AppBar>
     </Box>

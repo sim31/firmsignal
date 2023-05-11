@@ -2,7 +2,8 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { type RootState } from '../store'
 import { type WritableDraft } from 'immer/dist/types/types-external'
 import ProgrammingError from 'firmcore/src/exceptions/ProgrammingError'
-import firmcore, { type Address, type EFConstructorArgs, type NormEFChainPOD, type EFMsg, type EFBlockPOD, type BlockId, walletManager, type EFChainState } from 'firmcore'
+import firmcore, { type Address, type EFConstructorArgs, type NormEFChainPOD, type EFMsg, type EFBlockPOD, type BlockId, type EFChainState } from 'firmcore'
+import { getConfirmer } from '../wallets';
 import InvalidArgument from 'firmcore/src/exceptions/InvalidArgument'
 import NotFound from 'firmcore/src/exceptions/NotFound'
 
@@ -95,11 +96,13 @@ export interface ConfirmBlockArgs {
 export const confirmBlock = createAsyncThunk(
   'chains/confirmBlock',
   async (args: ConfirmBlockArgs, { dispatch }): Promise<void> => {
-    const wallet = await walletManager.getWallet(args.confirmerAddr)
-    if (wallet == null) {
-      throw new NotFound('Wallet not found')
+    const confirmer = getConfirmer();
+    if (confirmer === undefined) {
+      throw new Error('Confirmer not loaded')
     }
-    const confirmer = await firmcore.createWalletConfirmer(wallet)
+    if (confirmer.address !== args.confirmerAddr) {
+      throw new ProgrammingError('Different confirmer loaded than requrested');
+    }
 
     await confirmer.confirm(args.blockId)
 
