@@ -41,6 +41,11 @@ export interface MsgTypeInfo {
 };
 
 export const msgTypes: Record<MsgTypeName, MsgTypeInfo> = {
+  setDir: {
+    title: 'Set directory',
+    editComponent: SetDirectoryForm,
+    displayComponent: SetDirectoryMsg
+  },
   efSubmitResults: {
     title: 'Breakout room results',
     editComponent: undefined
@@ -61,9 +66,4 @@ export const msgTypes: Record<MsgTypeName, MsgTypeInfo> = {
     title: 'Update confirmers',
     editComponent: UpdateConfirmersForm
   },
-  setDir: {
-    title: 'Set directory',
-    editComponent: SetDirectoryForm,
-    displayComponent: SetDirectoryMsg
-  }
 }

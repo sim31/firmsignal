@@ -12,8 +12,8 @@ import PersonIcon from '@mui/icons-material/Person'
 import AddIcon from '@mui/icons-material/Add'
 import Typography from '@mui/material/Typography'
 import { blue } from '@mui/material/colors'
-import { EFMsg, type MsgTypeName } from 'firmcore'
-import { msgTypes } from '../global/messages'
+import { EFMsg, msgTypeNames, type MsgTypeName } from 'firmcore'
+import { MsgTypeInfo, msgTypes } from '../global/messages'
 
 export interface SelectMsgTypeDialogProps {
   open: boolean
@@ -31,11 +31,23 @@ export function SelectMsgTypeDialog (props: SelectMsgTypeDialogProps) {
     onClose(value as MsgTypeName)
   }
 
+  const readyMsgTypes = React.useMemo(() => {
+    const obj: Record<string, MsgTypeInfo> = {};
+    return Object.entries(msgTypes).reduce((prevObject, [key, val]) => {
+      if (val.editComponent !== undefined) {
+        prevObject[key] = val;
+        return prevObject;
+      } else {
+        return prevObject;
+      }
+    }, obj)
+  }, [])
+
   return (
     <Dialog onClose={handleClose} open={open}>
       <DialogTitle>Select message type</DialogTitle>
       <List sx={{ pt: 0 }}>
-        {Object.entries(msgTypes).map(([msgType, typeInfo]) => (
+        {Object.entries(readyMsgTypes).map(([msgType, typeInfo]) => (
           <ListItem disableGutters key={msgType}>
             <ListItemButton onClick={() => { handleListItemClick(msgType) }} key={msgType}>
               <ListItemText primary={typeInfo.title} />
