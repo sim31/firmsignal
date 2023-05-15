@@ -6,13 +6,20 @@ import ConfirmerTable from './ConfirmerTable'
 import StateInfoCard from './StateInfoCard'
 import { useLatestBlocks } from '../global/hooks'
 import { useMemo } from 'react'
-import { type Account, type Address } from 'firmcore'
+import firmcore, { type Account, type Address } from 'firmcore'
+
+const NullDir = firmcore.NullIPFSLink;
 
 export default function FirmState () {
   const { chain, headBlock, finalized, proposed } = useLatestBlocks()
 
+  const directoryId = headBlock?.state.directoryId;
+  // FIXME:
+  const ipfsLink = directoryId !== undefined && directoryId !== NullDir
+    ? `ipfs://${directoryId.slice(2)}`
+    : undefined;
+
   const confSet = headBlock?.state.confirmerSet
-  const confStatus = headBlock?.state.confirmationStatus
   // TODO: Move to some util or hook
   const accounts = useMemo(() => {
     const acc: Record<Address, Account> = {}
@@ -76,15 +83,21 @@ export default function FirmState () {
           <BalancesTable />
         </StateInfoCard>
       </Grid> */}
-      {/* <Grid item xs={12} md={6} lg={5}>
-        <StateInfoCard title="Directory">
-          <Typography noWrap>
-            <Link href="ipfs://QmekpHNKhz7CcCLyP2MwbyerFutd9JL4KXveANy57vbHZq" sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              ipfs://QmekpHNKhz7CcCLyP2MwbyerFutd9JL4KXveANy57vbHZq
-            </Link>
-          </Typography>
-        </StateInfoCard>
-      </Grid> */}
+      { ipfsLink !== undefined &&
+        <Grid item xs={12} md={6} lg={5}>
+          <StateInfoCard title="Directory">
+            <Typography noWrap>
+              <Link
+                href={ipfsLink}
+                target='_blank'
+                sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
+              >
+                {ipfsLink}
+              </Link>
+            </Typography>
+          </StateInfoCard>
+        </Grid>
+      }
       {/* <Grid item xs={12} md={6} lg={4} xl={3}>
         <StateInfoCard title="Chain Name">
           <Typography>EdenFractal</Typography>
