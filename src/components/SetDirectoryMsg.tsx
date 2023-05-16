@@ -6,12 +6,20 @@ import { type MsgDisplayProps, msgTypes } from '../global/messages'
 export function SetDirectoryMsg ({ msg, msgNumber, id }: MsgDisplayProps) {
   const typeInfo = msgTypes.setDir
   const dirId = 'dir' in msg ? msg.dir : 'Error: bad props passed'
+  const ipfsLink = `ipfs://${dirId}`
+
   const idStr = id ?? msgNumber.toString()
   return (
     <Grid item>
       {/* TODO: pass full hash? */}
       <MessageCard id={idStr} title={typeInfo.title}>
-        <Link>ipfs://{dirId}</Link>
+        <Link
+          href={ipfsLink}
+          target='_blank'
+          sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
+        >
+          {ipfsLink}
+        </Link>
       </MessageCard>
     </Grid>
   )

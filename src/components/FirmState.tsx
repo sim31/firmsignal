@@ -15,8 +15,8 @@ export default function FirmState () {
 
   const directoryId = headBlock?.state.directoryId;
   // FIXME:
-  const ipfsLink = directoryId !== undefined && directoryId !== NullDir
-    ? `ipfs://${directoryId.slice(2)}`
+  const ipfsLink = directoryId !== undefined
+    ? `ipfs://${directoryId}`
     : undefined;
 
   const confSet = headBlock?.state.confirmerSet

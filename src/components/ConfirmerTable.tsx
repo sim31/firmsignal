@@ -5,10 +5,8 @@ import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
-import Paper from '@mui/material/Paper'
 import { Link } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { shortenedAddr } from '../helpers/hashDisplay'
 import { type Account, type Address, type Confirmer } from 'firmcore'
 
 const AccountCell = styled(TableCell)({
