@@ -7,8 +7,6 @@ let _confirmer: Promise<BlockConfirmer>
 let _confirmerVal: BlockConfirmer | undefined;
 let _walletVal: IWallet | undefined;
 
-void _init();
-
 export async function _createWallet() {
   const ethWallet = EthWallet.createRandom();
   localStorage.setItem('key', ethWallet.privateKey);
@@ -17,7 +15,7 @@ export async function _createWallet() {
   })
 }
 
-async function _init() {
+export async function init() {
   const key = localStorage.getItem('key');
   if (key === null) {
     await _createWallet();

@@ -5,13 +5,10 @@ import App from './components/App'
 import reportWebVitals from './reportWebVitals'
 import { Provider } from 'react-redux'
 import { store } from './global/store'
-import { initLocationSync, initFirmcore } from './global/init'
 // import { init as initContractEnv } from './contracts/contracts';
 
 // Track when it is loaded (this is async function)
 // initContractEnv();
-initLocationSync()
-void initFirmcore()
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

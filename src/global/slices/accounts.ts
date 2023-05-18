@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice, } from '@reduxjs/toolkit'
 import { type RootState } from '../store'
 import { type Address } from 'firmcore'
 import { loadConfirmer } from '../wallets'
+import { waitForInit } from '../init'
 
 export interface Accounts {
   // TODO: retrieve account addresses from wallet manager (requires a thunk)
@@ -13,6 +14,7 @@ const initialState: Accounts = {}
 export const loadWallet = createAsyncThunk(
   'accounts/loadWallet',
   async (): Promise<Address> => {
+    await waitForInit();
     const confirmer = await loadConfirmer();
     return confirmer.address;
   }

@@ -1,30 +1,24 @@
-import { store } from './store'
-import { setLocation } from './slices/appLocation'
 import firmcore from 'firmcore'
+import { init as walletsInit } from './wallets';
 
-export function initLocationSync () {
-  // Update Redux if we navigated via browser's back/forward
-  // most browsers restore scroll position automatically
-  // as long as we make content scrolling happen on document.body
-  window.addEventListener('popstate', () => {
-    // here `doUpdateUrl` is an action creator that
-    // takes the new url and stores it in Redux.
-    store.dispatch(setLocation(window.location.pathname))
-  })
+let _firmcorePromise: Promise<void>;
 
-  store.subscribe(() => {
-    const { pathname } = store.getState().appLocation
-    // eslint-disable-next-line no-restricted-globals
-    if (location.pathname !== pathname) {
-      window.history.pushState(null, '', pathname)
-      // Force scroll to top this is what browsers normally do when
-      // navigating by clicking a link.
-      // Without this, scroll stays wherever it was which can be quite odd.
-      document.body.scrollTop = 0
-    }
-  })
+async function initFirmcore () {
+  _firmcorePromise = firmcore.init()
+  await _firmcorePromise;
 }
 
-export async function initFirmcore () {
-  await firmcore.init()
+async function initWallets() {
+  await walletsInit();
+}
+
+async function init() {
+  await initFirmcore();
+  await initWallets();
+}
+
+const _initialized = init();
+
+export async function waitForInit() {
+  await _initialized;
 }

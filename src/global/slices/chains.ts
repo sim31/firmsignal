@@ -6,6 +6,7 @@ import firmcore, { type Address, type EFConstructorArgs, type NormEFChainPOD, ty
 import { getConfirmer } from '../wallets';
 import InvalidArgument from 'firmcore/src/exceptions/InvalidArgument'
 import NotFound from 'firmcore/src/exceptions/NotFound'
+import { waitForInit } from '../init'
 
 export type Chain = NormEFChainPOD
 
@@ -40,6 +41,8 @@ export interface EFCreateBlockArgs {
 export const createChain = createAsyncThunk(
   'chains/createChain',
   async (args: EFConstructorArgs): Promise<Chain> => {
+    // TODO: timeout?
+    await waitForInit();
     const efChain = await firmcore.createEFChain(args)
     return await efChain.getNormPODChain()
   }
@@ -48,6 +51,8 @@ export const createChain = createAsyncThunk(
 export const createBlock = createAsyncThunk(
   'chains/createBlock',
   async (args: EFCreateBlockArgs, { getState }): Promise<{ args: EFCreateBlockArgs, block: EFBlockPOD }> => {
+    await waitForInit();
+
     const state = getState() as RootState
     const chain = selectChain(state, args.chainAddr)
     const headBl = selectHead(state, args.chainAddr)
@@ -78,6 +83,8 @@ export interface RefreshChainArgs {
 export const updateChain = createAsyncThunk(
   'chains/updateChain',
   async (args: RefreshChainArgs) => {
+    await waitForInit();
+
     const efChain = await firmcore.getChain(args.chainAddress)
     if (efChain == null) {
       throw new NotFound('Chain not found')
@@ -96,6 +103,8 @@ export interface ConfirmBlockArgs {
 export const confirmBlock = createAsyncThunk(
   'chains/confirmBlock',
   async (args: ConfirmBlockArgs, { dispatch }): Promise<void> => {
+    await waitForInit();
+
     const confirmer = getConfirmer();
     if (confirmer === undefined) {
       throw new Error('Confirmer not loaded')
