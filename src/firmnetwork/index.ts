@@ -66,33 +66,36 @@ export default class FirmNetwork {
 
       const { writer, out } = CarWriter.create(rootCID);
       for await (const block of blockstore.getAll()) {
-        await writer.put({ ...block, bytes: block.block });
+        void writer.put({ ...block, bytes: block.block });
       }
-      await writer.close()
+      void writer.close();
 
       const carParts = new Array<Uint8Array>();
       for await (const chunk of out) {
         carParts.push(chunk)
       }
+
       const carFile = new Blob(carParts, {
         type: 'application/car',
       });
 
-      const response = await fetch(
-        'ipfs://localhost/',
-        {
-          method: 'post',
-          body: carFile,
-          headers: {
-            'Content-Type': 'application/vnd.ipld.car',
-          },
-          // duplex: 'half',
-        }
-      );
+      console.log('firmnetwork - ok');
 
-      const resBody = await response.text();
+      // const response = await fetch(
+      //   'ipfs://localhost/',
+      //   {
+      //     method: 'post',
+      //     body: carFile,
+      //     headers: {
+      //       'Content-Type': 'application/vnd.ipld.car',
+      //     },
+      //     // duplex: 'half',
+      //   }
+      // );
 
-      console.log('status: ', response.status, 'results: ', resBody);
+      // const resBody = await response.text();
+
+      // console.log('status: ', response.status, 'results: ', resBody);
     }
   }
 }
