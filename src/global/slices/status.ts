@@ -1,7 +1,7 @@
 import { unstable_getNormalizedScrollLeft } from '@mui/utils'
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { type AppThunk, type RootState } from '../store'
-import { type StatusAlert } from '../types'
+import { type AppThunk, type RootState } from '../store.js'
+import { type StatusAlert } from '../types.js'
 
 export interface Status {
   alert: StatusAlert

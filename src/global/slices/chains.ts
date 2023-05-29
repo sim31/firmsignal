@@ -1,12 +1,12 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { type RootState } from '../store'
-import { type WritableDraft } from 'immer/dist/types/types-external'
-import ProgrammingError from 'firmcore/src/exceptions/ProgrammingError'
+import { type RootState } from '../store.js'
+import { type WritableDraft } from 'immer/dist/types/types-external.js'
+import { ProgrammingError } from 'firmcore/src/exceptions/ProgrammingError.js'
 import firmcore, { type Address, type EFConstructorArgs, type NormEFChainPOD, type EFMsg, type EFBlockPOD, type BlockId, type EFChainState } from 'firmcore'
-import { getConfirmer } from '../wallets';
-import InvalidArgument from 'firmcore/src/exceptions/InvalidArgument'
-import NotFound from 'firmcore/src/exceptions/NotFound'
-import { waitForInit } from '../init'
+import { getConfirmer } from '../wallets.js';
+import { InvalidArgument } from 'firmcore/src/exceptions/InvalidArgument.js'
+import { NotFound } from 'firmcore/src/exceptions/NotFound.js'
+import { waitForInit } from '../init.js'
 
 export type Chain = NormEFChainPOD
 

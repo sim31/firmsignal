@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { type RootState, AppThunk } from '../store'
+import { type RootState, AppThunk } from '../store.js'
 
 export interface AppLocationState {
   pathname: string

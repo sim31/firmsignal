@@ -1,10 +1,10 @@
 import { TextField } from '@mui/material'
-import { type EditMsgProps, msgTypes } from '../global/messages'
+import { type EditMsgProps, msgTypes } from '../global/messages.js'
 import React, { useCallback, useState } from 'react'
-import firmcore, { newSetDirMsg } from 'firmcore'
-import { isValidCid0, urlToCid0 } from 'firmcore/src/helpers/cid'
-import MessageCreateCard from './MessageCreateCard'
-import InvalidArgument from 'firmcore/src/exceptions/InvalidArgument'
+import { newSetDirMsg } from 'firmcore'
+import { isValidCid0, urlToCid0 } from 'firmcore/src/helpers/cid.js'
+import MessageCreateCard from './MessageCreateCard.js'
+import { InvalidArgument } from 'firmcore/src/exceptions/InvalidArgument.js'
 
 export default function SetDirectoryForm (props: EditMsgProps) {
   const [value, setValue] = useState('');

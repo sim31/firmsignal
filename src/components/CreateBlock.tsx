@@ -1,21 +1,20 @@
 import { Button, Grid, Stack, Typography } from '@mui/material'
-import { useAppDispatch, useLatestBlocks } from '../global/hooks'
-import { createBlock } from '../global/slices/chains'
+import { useAppDispatch, useLatestBlocks } from '../global/hooks.js'
+import { createBlock } from '../global/slices/chains.js'
 import { useCallback, useState } from 'react'
 import React, { type MsgTypeName } from 'firmcore'
-import useIncrementingId from '../hooks/useIncrementingId'
-import { SelectMsgTypeDialog } from './SelectMsgTypeDialog'
-import { type MsgContent, isValidMsg, msgTypes } from '../global/messages'
-import ProgrammingError from 'firmcore/src/exceptions/ProgrammingError'
-import { setStatusAlert, unsetAlert } from '../global/slices/status'
-import NotFound from 'firmcore/src/exceptions/NotFound'
-import { setLocation } from '../global/slices/appLocation'
-import { type EmotionJSX } from '@emotion/react/types/jsx-namespace'
+import useIncrementingId from '../hooks/useIncrementingId.js'
+import { SelectMsgTypeDialog } from './SelectMsgTypeDialog.js'
+import { type MsgContent, isValidMsg, msgTypes } from '../global/messages.js'
+import { ProgrammingError } from 'firmcore/src/exceptions/ProgrammingError.js'
+import { setStatusAlert, unsetAlert } from '../global/slices/status.js'
+import { NotFound } from 'firmcore/src/exceptions/NotFound.js'
+import { setLocation } from '../global/slices/appLocation.js'
 
 type MsgId = string
 type MsgEntry = MsgContent & { id: MsgId, typeName: MsgTypeName }
 
-export default function CreateBlock (): EmotionJSX.Element {
+export default function CreateBlock () {
   const { headBlock, chain } = useLatestBlocks()
   const height = (headBlock != null) ? headBlock.height + 1 : undefined
   const [msgs, setMsgs] = useState<Record<MsgId, MsgEntry>>({})
@@ -93,7 +92,7 @@ export default function CreateBlock (): EmotionJSX.Element {
       }
     }, [msgs, dispatch, chain])
 
-  function renderMessages (): EmotionJSX.Element {
+  function renderMessages () {
     // TODO: issue a token?
     const rMsgs = Object.values(msgs).map((msg, index) => {
       const typeInfo = msgTypes[msg.typeName]

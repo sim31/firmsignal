@@ -1,7 +1,7 @@
 import React from 'react'
 import { Grid, Link } from '@mui/material'
-import MessageCard from './MessageCard'
-import { type MsgDisplayProps, msgTypes } from '../global/messages'
+import MessageCard from './MessageCard.js'
+import { type MsgDisplayProps, msgTypes } from '../global/messages.js'
 
 export function SetDirectoryMsg ({ msg, msgNumber, id }: MsgDisplayProps) {
   const typeInfo = msgTypes.setDir

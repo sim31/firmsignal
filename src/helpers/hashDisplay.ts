@@ -1,5 +1,5 @@
 import { css } from '@mui/material'
-import { SHORTENED_ADDR_WIDTH } from '../config'
+import { SHORTENED_ADDR_WIDTH } from '../config.js'
 
 export function customTextWidth (width = SHORTENED_ADDR_WIDTH) {
   return {

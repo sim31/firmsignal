@@ -1,8 +1,8 @@
 import { configureStore, type ThunkAction, type Action } from '@reduxjs/toolkit'
-import appLocation, { setLocation } from './slices/appLocation'
-import chains from './slices/chains'
-import accounts from './slices/accounts'
-import status from './slices/status'
+import appLocation, { setLocation } from './slices/appLocation.js'
+import chains from './slices/chains.js'
+import accounts from './slices/accounts.js'
+import status from './slices/status.js'
 
 export const store = configureStore({
   reducer: {

@@ -1,10 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './index.css'
-import App from './components/App'
-import reportWebVitals from './reportWebVitals'
+import App from './components/App.js'
+import reportWebVitals from './reportWebVitals.js'
 import { Provider } from 'react-redux'
-import { store } from './global/store'
+import { store } from './global/store.js'
 // import { init as initContractEnv } from './contracts/contracts';
 
 // Track when it is loaded (this is async function)

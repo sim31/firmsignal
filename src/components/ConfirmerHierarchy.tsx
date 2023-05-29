@@ -1,9 +1,11 @@
 import React from 'react'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import * as ExpandMore from '@mui/icons-material/ExpandMore.js'
+import * as ChevronRight from '@mui/icons-material/ChevronRight.js'
 import { TreeItem, TreeView } from '@mui/lab'
 import { Box, Container, Grid } from '@mui/material'
 import { type Chain } from 'firmcore'
+const ExpandMoreIcon = ExpandMore.default;
+const ChevronRightIcon = ChevronRight.default;
 
 export interface Node {
   name: string

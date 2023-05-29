@@ -1,5 +1,5 @@
 import firmcore from 'firmcore'
-import { init as walletsInit } from './wallets';
+import { init as walletsInit } from './wallets.js';
 
 let _firmcorePromise: Promise<void>;
 

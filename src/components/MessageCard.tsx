@@ -1,14 +1,8 @@
 import * as React from 'react'
-import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
-import CardActions from '@mui/material/CardActions'
-import CardContent from '@mui/material/CardContent'
-import Button from '@mui/material/Button'
-import Typography from '@mui/material/Typography'
-import { customTextWidthCss } from '../helpers/hashDisplay'
+import { customTextWidthCss } from '../helpers/hashDisplay.js'
 import { styled } from '@mui/material/styles'
-import { Checkbox, Stack } from '@mui/material'
-import { messageTagText } from '../helpers/messageTagDisplay'
+import { Checkbox, Stack, Card, CardContent, CardActions, Typography } from '@mui/material'
+import { messageTagText } from '../helpers/messageTagDisplay.js'
 
 export type MessageCardProps = {
   id: string

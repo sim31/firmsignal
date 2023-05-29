@@ -1,19 +1,18 @@
 import React, { useEffect } from 'react'
-import FirmBar from './FirmBar'
+import FirmBar from './FirmBar.js'
 import { Alert, CssBaseline } from '@mui/material'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import {
   setLocation
-} from '../global/slices/appLocation'
-import { selectDefaultChain } from '../global/slices/chains'
-import { useAppSelector, useAppDispatch, useRouteMatcher } from '../global/hooks'
-import { rootRouteMatcher } from '../global/routes'
-import { selectStatusAlert } from '../global/slices/status'
-import { type EmotionJSX } from '@emotion/react/types/jsx-namespace'
+} from '../global/slices/appLocation.js'
+import { selectDefaultChain } from '../global/slices/chains.js'
+import { useAppSelector, useAppDispatch, useRouteMatcher } from '../global/hooks.js'
+import { rootRouteMatcher } from '../global/routes.js'
+import { selectStatusAlert } from '../global/slices/status.js'
 
 const theme = createTheme()
 
-function App (): EmotionJSX.Element {
+function App () {
   const dispatch = useAppDispatch()
   const routeMatch = useRouteMatcher(rootRouteMatcher)
   const defaultChain = useAppSelector(selectDefaultChain)

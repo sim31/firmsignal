@@ -1,10 +1,6 @@
 import * as React from 'react'
-import Card from '@mui/material/Card'
-import CardActions from '@mui/material/CardActions'
-import CardContent from '@mui/material/CardContent'
-import Button from '@mui/material/Button'
-import Typography from '@mui/material/Typography'
-import { messageTagText } from '../helpers/messageTagDisplay'
+import { messageTagText } from '../helpers/messageTagDisplay.js'
+import { Card, CardContent, Typography } from '@mui/material'
 
 export type MessageCreateCardProps = {
   idStr: string

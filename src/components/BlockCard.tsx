@@ -1,18 +1,15 @@
 import * as React from 'react'
-import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
-import CardActions from '@mui/material/CardActions'
-import CardContent from '@mui/material/CardContent'
-import Button from '@mui/material/Button'
-import Typography from '@mui/material/Typography'
-import { Stack } from '@mui/material'
+import {
+  Stack, Card, Box, CardActions, CardContent,
+  Button, Typography
+} from '@mui/material'
 import { useMemo } from 'react'
-import { useAppDispatch, useCopyCallback } from '../global/hooks'
+import { useAppDispatch, useCopyCallback } from '../global/hooks.js'
 import { EFBlockPOD } from 'firmcore'
-import { type TaggedBlock, blockTagsStr } from '../utils/blockTags'
-import { dateToStr, timestampToDate, timestampToDateStr } from 'firmcore/src/helpers/date'
-import { confirmationsText } from '../helpers/confirmationsDisplay'
-import { shortBlockId } from '../helpers/hashDisplay'
+import { type TaggedBlock, blockTagsStr } from '../utils/blockTags.js'
+import { dateToStr, timestampToDate, timestampToDateStr } from 'firmcore/src/helpers/date.js'
+import { confirmationsText } from '../helpers/confirmationsDisplay.js'
+import { shortBlockId } from '../helpers/hashDisplay.js'
 
 export interface BlockCardProps {
   block: TaggedBlock

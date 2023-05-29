@@ -1,25 +1,17 @@
 import React, { useCallback, useState } from 'react'
-import Box from '@mui/material/Box'
-import Container from '@mui/material/Container'
-import Paper from '@mui/material/Paper'
-import Button from '@mui/material/Button'
-import Typography from '@mui/material/Typography'
-import TextField from '@mui/material/TextField'
-import IconButton from '@mui/material/IconButton'
-import Stack from '@mui/material/Stack'
 import { useImmer } from 'use-immer'
-import useIncrementingId from '../hooks/useIncrementingId'
-import { useAppDispatch } from '../global/hooks'
-import { createChain } from '../global/slices/chains'
-import { setLocation } from '../global/slices/appLocation'
-import { setStatusAlert, unsetAlert } from '../global/slices/status'
+import useIncrementingId from '../hooks/useIncrementingId.js'
+import { useAppDispatch } from '../global/hooks.js'
+import { createChain } from '../global/slices/chains.js'
+import { setLocation } from '../global/slices/appLocation.js'
+import { setStatusAlert, unsetAlert } from '../global/slices/status.js'
 import type { AccountWithAddress, EFConstructorArgs } from 'firmcore'
 import type { Overwrite } from 'utility-types'
-import { type EmotionJSX } from '@emotion/react/types/jsx-namespace'
+import { Box, Button, Container, IconButton, Paper, Stack, TextField, Typography } from '@mui/material'
 
 type ConfirmerEntry = Overwrite<AccountWithAddress, { id: string, extAccounts: string }>
 
-export default function CreateChain (): EmotionJSX.Element {
+export default function CreateChain () {
   const dispatch = useAppDispatch();
   const [name, setName] = useState('');
   const [symbol, setSymbol] = useState('');
@@ -123,7 +115,7 @@ export default function CreateChain (): EmotionJSX.Element {
     [confirmers, dispatch, name, symbol]
   )
 
-  function renderConfirmers (): EmotionJSX.Element[] {
+  function renderConfirmers () {
     return Object.values(confirmers).map((confirmer) => {
       return (
         <Stack direction="row" spacing={1} key={confirmer.id}>

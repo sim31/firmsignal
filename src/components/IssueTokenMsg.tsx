@@ -1,8 +1,10 @@
 import React from 'react'
 import { TreeItem, TreeView } from '@mui/lab'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import * as ExpandMore from '@mui/icons-material/ExpandMore.js'
+import * as ChevronRight from '@mui/icons-material/ChevronRight.js'
 import { styled } from '@mui/material/styles'
+const ExpandMoreIcon = ExpandMore.default;
+const ChevronRightIcon = ChevronRight.default;
 
 const StyledItem = styled(TreeItem)({
   '& .MuiTreeItem-content': {

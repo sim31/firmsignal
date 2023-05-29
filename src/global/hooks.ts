@@ -1,23 +1,23 @@
 import { type TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
 import {
   selectLocation
-} from '../global/slices/appLocation'
-import type { RootState, AppDispatch } from './store'
-import type createMatcher from 'feather-route-matcher'
-import { chainRouteMatcher } from './routes'
-import { type Chain, selectChain } from './slices/chains'
-import { getRouteParam } from '../helpers/routes'
+} from '../global/slices/appLocation.js'
+import type { RootState, AppDispatch } from './store.js'
+import routeMatcher from 'feather-route-matcher'
+import { chainRouteMatcher } from './routes.js'
+import { type Chain, selectChain } from './slices/chains.js'
+import { getRouteParam } from '../helpers/routes.js'
 import { useCallback } from 'react'
 import copy from 'copy-to-clipboard'
-import { setTimedAlert } from './slices/status'
-import { type TaggedBlock, tagBlocks } from '../utils/blockTags'
-import assert from 'firmcore/src/helpers/assert'
+import { setTimedAlert } from './slices/status.js'
+import { type TaggedBlock, tagBlocks } from '../utils/blockTags.js'
+import assert from 'firmcore/src/helpers/assert.js'
 
 // Use throughout your app instead of plain `useDispatch` and `useSelector`
 export const useAppDispatch = () => useDispatch<AppDispatch>()
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
 
-export const useRouteMatcher = <T>(matcher: ReturnType<typeof createMatcher<T>>) => {
+export const useRouteMatcher = <T>(matcher: ReturnType<typeof routeMatcher.default<T>>) => {
   const path = useAppSelector(selectLocation).pathname
   return matcher(path)
 }

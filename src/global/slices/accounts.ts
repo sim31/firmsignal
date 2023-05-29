@@ -1,8 +1,8 @@
 import { createAsyncThunk, createSlice, } from '@reduxjs/toolkit'
-import { type RootState } from '../store'
+import { type RootState } from '../store.js'
 import { type Address } from 'firmcore'
-import { loadConfirmer } from '../wallets'
-import { waitForInit } from '../init'
+import { loadConfirmer } from '../wallets.js'
+import { waitForInit } from '../init.js'
 
 export interface Accounts {
   // TODO: retrieve account addresses from wallet manager (requires a thunk)

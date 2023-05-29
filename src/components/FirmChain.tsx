@@ -1,13 +1,13 @@
 import { Box, Container, Tab, Tabs, Typography } from '@mui/material'
 import * as React from 'react'
-import { useAppDispatch, useAppSelector, useRouteMatcher } from '../global/hooks'
-import { chainRouteMatcher, rootRouteMatcher } from '../global/routes'
-import { setLocation } from '../global/slices/appLocation'
-import { selectChain, selectChainState } from '../global/slices/chains'
-import NotFoundError from './Errors/NotFoundError'
+import { useAppDispatch, useAppSelector, useRouteMatcher } from '../global/hooks.js'
+import { chainRouteMatcher, rootRouteMatcher } from '../global/routes.js'
+import { setLocation } from '../global/slices/appLocation.js'
+import { selectChain, selectChainState } from '../global/slices/chains.js'
+import NotFoundError from './Errors/NotFoundError.js'
 import { useEffect } from 'react'
-import { getRouteParam } from '../helpers/routes'
-import { shortAddress } from '../helpers/hashDisplay'
+import { getRouteParam } from '../helpers/routes.js'
+import { shortAddress } from '../helpers/hashDisplay.js'
 
 export default function FirmChain () {
   const routeMatch = useRouteMatcher(chainRouteMatcher)

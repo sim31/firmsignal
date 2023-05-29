@@ -1,4 +1,4 @@
-import { type TaggedBlock } from '../utils/blockTags'
+import { type TaggedBlock } from '../utils/blockTags.js'
 
 export interface ColoredText {
   text: string

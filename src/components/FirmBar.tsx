@@ -1,23 +1,18 @@
 import * as React from 'react'
 import { styled, alpha } from '@mui/material/styles'
-import AppBar from '@mui/material/AppBar'
-import Box from '@mui/material/Box'
-import Toolbar from '@mui/material/Toolbar'
-import Typography from '@mui/material/Typography'
-import InputBase from '@mui/material/InputBase'
-import MenuItem from '@mui/material/MenuItem'
-import { css, FormControl, IconButton, InputLabel, Select, type SelectChangeEvent } from '@mui/material'
-import { customTextWidthCss } from '../helpers/hashDisplay'
-import { useCopyCallback, useCurrentChainRoute, useRouteMatcher, useAppSelector, useAppDispatch } from '../global/hooks'
-import { rootRouteMatcher } from '../global/routes'
-import { selectChainName, selectChainsByAddress } from '../global/slices/chains'
-import { setLocation } from '../global/slices/appLocation'
-import { getRouteParam } from '../helpers/routes'
-import { loadWallet, selectCurrentAccount } from '../global/slices/accounts'
+import {
+  IconButton, InputBase, MenuItem, Select, type SelectChangeEvent,
+  Box, AppBar, Toolbar, Typography
+} from '@mui/material'
+import { customTextWidthCss } from '../helpers/hashDisplay.js'
+import { useCopyCallback, useAppSelector, useAppDispatch, useRouteMatcher } from '../global/hooks.js'
+import { rootRouteMatcher } from '../global/routes.js'
+import { selectChainName, selectChainsByAddress } from '../global/slices/chains.js'
+import { setLocation } from '../global/slices/appLocation.js'
+import { getRouteParam } from '../helpers/routes.js'
+import { loadWallet, selectCurrentAccount } from '../global/slices/accounts.js'
 import { useCallback, useEffect } from 'react'
-import ContentCopyIcon from '@mui/icons-material/ContentCopy'
-import copy from 'copy-to-clipboard'
-import { setTimedAlert } from '../global/slices/status'
+import * as ContentCopyIcon from '@mui/icons-material/ContentCopy.js'
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -193,7 +188,7 @@ export default function FirmBar () {
             <>
               <ShortenedAddr>{currentAccount}</ShortenedAddr>
               <IconButton sx={{ color: 'white' }} onClick={handleAccountCopy}>
-                <ContentCopyIcon />
+                <ContentCopyIcon.default />
               </IconButton>
             </>
           }

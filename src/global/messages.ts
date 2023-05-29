@@ -1,8 +1,8 @@
 import { type EFMsg, type MsgTypeName } from 'firmcore'
-import UpdateConfirmersForm from '../components/UpdateConfirmersForm'
-import SetDirectoryForm from '../components/SetDirectoryForm'
-import { type EmotionJSX } from '@emotion/react/types/jsx-namespace'
-import { SetDirectoryMsg } from '../components/SetDirectoryMsg'
+import UpdateConfirmersForm from '../components/UpdateConfirmersForm.js'
+import SetDirectoryForm from '../components/SetDirectoryForm.js'
+import { SetDirectoryMsg } from '../components/SetDirectoryMsg.js'
+import { jsx } from '@emotion/react';
 
 export interface InputError {
   what: string
@@ -24,7 +24,7 @@ export interface EditMsgProps {
   onChange: (msg: MsgContent) => void
 }
 
-export type MsgEditComponent = (props: EditMsgProps) => EmotionJSX.Element
+export type MsgEditComponent = (props: EditMsgProps) => jsx.JSX.Element
 
 export interface MsgDisplayProps {
   id?: string
@@ -32,7 +32,7 @@ export interface MsgDisplayProps {
   msg: EFMsg
 }
 
-export type MsgDisplayComponent = (props: MsgDisplayProps) => EmotionJSX.Element
+export type MsgDisplayComponent = (props: MsgDisplayProps) => jsx.JSX.Element
 
 export interface MsgTypeInfo {
   title: string

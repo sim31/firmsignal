@@ -1,4 +1,4 @@
-import { type useRouteMatcher } from '../global/hooks'
+import { type useRouteMatcher } from '../global/hooks.js'
 
 export function getRouteParam<T> (routeMatch: ReturnType<typeof useRouteMatcher<T>>, paramId: string): string | undefined
 export function getRouteParam<T> (routeMatch: ReturnType<typeof useRouteMatcher<T>>, paramId: string, defaultVal: string): string

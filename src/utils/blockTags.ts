@@ -1,4 +1,4 @@
-import assert from 'firmcore/src/helpers/assert'
+import assert from 'firmcore/src/helpers/assert.js'
 import { type EFBlockPOD, type NormalizedSlots } from 'firmcore'
 
 // Blocks
