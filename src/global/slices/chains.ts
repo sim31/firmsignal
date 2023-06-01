@@ -7,6 +7,10 @@ import { getConfirmer } from '../wallets.js';
 import { InvalidArgument } from 'firmcore/src/exceptions/InvalidArgument.js'
 import { NotFound } from 'firmcore/src/exceptions/NotFound.js'
 import { waitForInit } from '../init.js'
+import { FirmcoreTagger } from 'firmcore/src/firmcore-tagger';
+import { setStatusAlert } from './status.js'
+
+const _tagger = new FirmcoreTagger();
 
 export type Chain = NormEFChainPOD
 
@@ -38,19 +42,28 @@ export interface EFCreateBlockArgs {
   msgs: EFMsg[]
 };
 
+export const tagFirmcore = createAsyncThunk(
+  'chain/tagFirmcore',
+  async (tag: string, { dispatch }): Promise<void> => {
+    const car = await firmcore.exportAsCAR();
+    await _tagger.tag(tag, car);
+  }
+)
+
 export const createChain = createAsyncThunk(
   'chains/createChain',
-  async (args: EFConstructorArgs): Promise<Chain> => {
+  async (args: EFConstructorArgs, { dispatch }): Promise<Chain> => {
     // TODO: timeout?
     await waitForInit();
     const efChain = await firmcore.createEFChain(args)
+    await dispatch(tagFirmcore(efChain.name)).unwrap();
     return await efChain.getNormPODChain()
   }
 )
 
 export const createBlock = createAsyncThunk(
   'chains/createBlock',
-  async (args: EFCreateBlockArgs, { getState }): Promise<{ args: EFCreateBlockArgs, block: EFBlockPOD }> => {
+  async (args: EFCreateBlockArgs, { getState, dispatch }): Promise<{ args: EFCreateBlockArgs, block: EFBlockPOD }> => {
     await waitForInit();
 
     const state = getState() as RootState
@@ -71,6 +84,8 @@ export const createBlock = createAsyncThunk(
     if (pod == null) {
       throw new NotFound("Couldn't find block just created")
     }
+
+    await dispatch(tagFirmcore(efChain.name)).unwrap();
 
     return { args, block: pod }
   }
@@ -116,6 +131,13 @@ export const confirmBlock = createAsyncThunk(
     await confirmer.confirm(args.blockId)
 
     const chainAddress = args.chainAddress
+
+    const efChain = await firmcore.getChain(chainAddress);
+    if (efChain === undefined) {
+      throw new NotFound('chain not found');
+    }
+    await dispatch(tagFirmcore(efChain.name)).unwrap();
+
     await dispatch(updateChain({ chainAddress }))
   }
 )
@@ -148,7 +170,6 @@ export const chainsSlice = createSlice({
         }
         chain.slots.proposed.push(block)
       })
-
       .addCase(updateChain.fulfilled, (state, action) => {
         state.status = 'success'
         const chain = action.payload
