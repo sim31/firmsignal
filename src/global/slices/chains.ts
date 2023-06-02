@@ -2,15 +2,12 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { type RootState } from '../store.js'
 import { type WritableDraft } from 'immer/dist/types/types-external.js'
 import { ProgrammingError } from 'firmcore/src/exceptions/ProgrammingError.js'
-import firmcore, { type Address, type EFConstructorArgs, type NormEFChainPOD, type EFMsg, type EFBlockPOD, type BlockId, type EFChainState } from 'firmcore'
-import { getConfirmer } from '../wallets.js';
+import type { Address, EFConstructorArgs, NormEFChainPOD, EFMsg, EFBlockPOD, BlockId, EFChainState, IFirmCore } from 'firmcore'
+import fcManager from 'firmcore';
 import { InvalidArgument } from 'firmcore/src/exceptions/InvalidArgument.js'
 import { NotFound } from 'firmcore/src/exceptions/NotFound.js'
-import { waitForInit } from '../init.js'
-import { FirmcoreTagger } from 'firmcore/src/firmcore-tagger';
+import { waitForInit } from '../initWaiter.js'
 import { setStatusAlert } from './status.js'
-
-const _tagger = new FirmcoreTagger();
 
 export type Chain = NormEFChainPOD
 
@@ -44,9 +41,8 @@ export interface EFCreateBlockArgs {
 
 export const tagFirmcore = createAsyncThunk(
   'chain/tagFirmcore',
-  async (tag: string, { dispatch }): Promise<void> => {
-    const car = await firmcore.exportAsCAR();
-    await _tagger.tag(tag, car);
+  async (tag: string): Promise<void> => {
+    await fcManager.tag(tag);
   }
 )
 
@@ -54,8 +50,8 @@ export const createChain = createAsyncThunk(
   'chains/createChain',
   async (args: EFConstructorArgs, { dispatch }): Promise<Chain> => {
     // TODO: timeout?
-    await waitForInit();
-    const efChain = await firmcore.createEFChain(args)
+    const { fc } = await waitForInit();
+    const efChain = await fc.createEFChain(args)
     await dispatch(tagFirmcore(efChain.name)).unwrap();
     return await efChain.getNormPODChain()
   }
@@ -64,7 +60,7 @@ export const createChain = createAsyncThunk(
 export const createBlock = createAsyncThunk(
   'chains/createBlock',
   async (args: EFCreateBlockArgs, { getState, dispatch }): Promise<{ args: EFCreateBlockArgs, block: EFBlockPOD }> => {
-    await waitForInit();
+    const { fc } = await waitForInit();
 
     const state = getState() as RootState
     const chain = selectChain(state, args.chainAddr)
@@ -73,7 +69,7 @@ export const createBlock = createAsyncThunk(
       throw new InvalidArgument('Cannot create a block for unknown chain')
     }
 
-    const efChain = await firmcore.getChain(args.chainAddr)
+    const efChain = await fc.getChain(args.chainAddr)
     if (efChain == null) {
       throw new NotFound('Firmcore cannot find chain')
     }
@@ -98,9 +94,9 @@ export interface RefreshChainArgs {
 export const updateChain = createAsyncThunk(
   'chains/updateChain',
   async (args: RefreshChainArgs) => {
-    await waitForInit();
+    const { fc } = await waitForInit();
 
-    const efChain = await firmcore.getChain(args.chainAddress)
+    const efChain = await fc.getChain(args.chainAddress)
     if (efChain == null) {
       throw new NotFound('Chain not found')
     }
@@ -118,12 +114,8 @@ export interface ConfirmBlockArgs {
 export const confirmBlock = createAsyncThunk(
   'chains/confirmBlock',
   async (args: ConfirmBlockArgs, { dispatch }): Promise<void> => {
-    await waitForInit();
+    const { fc, confirmer } = await waitForInit();
 
-    const confirmer = getConfirmer();
-    if (confirmer === undefined) {
-      throw new Error('Confirmer not loaded')
-    }
     if (confirmer.address !== args.confirmerAddr) {
       throw new ProgrammingError('Different confirmer loaded than requrested');
     }
@@ -132,7 +124,7 @@ export const confirmBlock = createAsyncThunk(
 
     const chainAddress = args.chainAddress
 
-    const efChain = await firmcore.getChain(chainAddress);
+    const efChain = await fc.getChain(chainAddress);
     if (efChain === undefined) {
       throw new NotFound('chain not found');
     }

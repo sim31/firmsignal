@@ -1,10 +1,9 @@
-import firmcore, { IWallet, BlockConfirmer } from 'firmcore/index.js';
+import { IWallet, BlockConfirmer } from 'firmcore/index.js';
 import { Wallet } from 'firmcore/src/wallet';
 import { Wallet as EthWallet } from 'firmcore/node_modules/ethers';
+import fcManager from 'firmcore';
 
 let _wallet: Promise<IWallet>;
-let _confirmer: Promise<BlockConfirmer>
-let _confirmerVal: BlockConfirmer | undefined;
 let _walletVal: IWallet | undefined;
 
 export async function _createWallet() {
@@ -25,16 +24,12 @@ export async function init() {
     });
   }
 
-  _confirmer = firmcore.createWalletConfirmer(await _wallet);
-
   _walletVal = await _wallet;
-  _confirmerVal = await _confirmer;
 }
 
 export async function waitForInit() {
   return {
     wallet: await _wallet,
-    confirmer: await _confirmer
   };
 }
 
@@ -43,11 +38,10 @@ export async function loadWallet() {
 }
 
 export async function loadConfirmer() {
-  return (await waitForInit()).confirmer;
-}
-
-export function getConfirmer() {
-  return _confirmerVal;
+  const wallet = await loadWallet();
+  const fc = await fcManager.get();
+  const conf = await fc.createWalletConfirmer(wallet);
+  return conf;
 }
 
 export function getWallet() {

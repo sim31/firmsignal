@@ -87,7 +87,7 @@ export default function CreateBlock () {
         dispatch(setStatusAlert({
           status: 'error',
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          msg: `Failed creating new chain. Error: ${msg}`
+          msg: `Failed creating new block. Error: ${msg}`
         }))
       }
     }, [msgs, dispatch, chain])

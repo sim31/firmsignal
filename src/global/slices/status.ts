@@ -10,7 +10,6 @@ export interface Status {
 
 const initialState: Status = {
   alert: {
-    msg: '',
     status: 'none'
   },
   alertNum: 0

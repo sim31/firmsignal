@@ -81,12 +81,6 @@ export default function FirmBar () {
 
   const dispatch = useAppDispatch()
 
-  useEffect(() => {
-    if (currentAccount === undefined) {
-      void dispatch(loadWallet());
-    }
-  }, [currentAccount, dispatch])
-
   const chainValue = React.useMemo(() => {
     if (routeMatch.value == null) {
       return ''

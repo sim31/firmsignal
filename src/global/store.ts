@@ -1,8 +1,11 @@
 import { configureStore, type ThunkAction, type Action } from '@reduxjs/toolkit'
 import appLocation, { setLocation } from './slices/appLocation.js'
 import chains from './slices/chains.js'
-import accounts from './slices/accounts.js'
-import status from './slices/status.js'
+import accounts, { loadWallet } from './slices/accounts.js'
+import status, { setStatusAlert } from './slices/status.js'
+import anyToStr from 'firmcore/src/helpers/anyToStr.js'
+import { init as walletsInit } from './wallets.js';
+import fcManager from 'firmcore';
 
 export const store = configureStore({
   reducer: {
@@ -36,7 +39,32 @@ function initLocationSync () {
   })
 }
 
+async function initFc() {
+  try {
+    store.dispatch(setStatusAlert({
+      status: 'info',
+      msg: 'Loading...'
+    }))
+    await fcManager.get();
+    await walletsInit();
+    await store.dispatch(loadWallet());
+    store.dispatch(setStatusAlert({ status: 'none' }))
+    // TODO: dispatch action to initialize chain list
+  } catch (err: any) {
+    const errStr = anyToStr(err);
+    // TODO: why does it complain
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    const str = `Failed initializing firmcore: ${errStr}`;
+    console.error(str);
+    store.dispatch(setStatusAlert({
+      status: 'error',
+      msg: str
+    }));
+  }
+}
+
 initLocationSync();
+void initFc();
 
 export type AppDispatch = typeof store.dispatch
 export type RootState = ReturnType<typeof store.getState>
