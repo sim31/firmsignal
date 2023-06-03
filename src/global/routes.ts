@@ -5,10 +5,12 @@ import FirmChain from '../components/FirmChain.js'
 import FirmState from '../components/FirmState.js'
 import FirmBlocks from '../components/FirmBlocks.js'
 import CreateBlock from '../components/CreateBlock.js'
+import ImportChain from '../components/ImportChain.js'
 // const createMatcher = routeMatcherPkg.default;
 
 const rootRouteMatcher = createMatcher.default({
   '/newChain': CreateChain,
+  '/importChain': ImportChain,
   '/chains/:chainId': FirmChain,
   '/chains/:chainId/:tab': FirmChain,
   '/chains/:chainId/:tab/*': FirmChain,

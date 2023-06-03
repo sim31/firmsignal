@@ -2,7 +2,7 @@ import { TextField } from '@mui/material'
 import { type EditMsgProps, msgTypes } from '../global/messages.js'
 import React, { useCallback, useState } from 'react'
 import { newSetDirMsg } from 'firmcore'
-import { isValidCid0, urlToCid0 } from 'firmcore/src/helpers/cid.js'
+import { isValidCid0, parseIPFSId, urlToCid0 } from 'firmcore/src/helpers/cid.js'
 import MessageCreateCard from './MessageCreateCard.js'
 import { InvalidArgument } from 'firmcore/src/exceptions/InvalidArgument.js'
 
@@ -16,7 +16,7 @@ export default function SetDirectoryForm (props: EditMsgProps) {
       const value = event.target.value;
       setValue(value)
       try {
-        const cid = isValidCid0(value) ? value : urlToCid0(value);
+        const cid = parseIPFSId(value);
         props.onChange(newSetDirMsg(cid))
       } catch (err) {
         if (!(err instanceof InvalidArgument)) {

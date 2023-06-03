@@ -3,11 +3,14 @@ import * as React from 'react'
 import { useAppDispatch, useAppSelector, useRouteMatcher } from '../global/hooks.js'
 import { chainRouteMatcher, rootRouteMatcher } from '../global/routes.js'
 import { setLocation } from '../global/slices/appLocation.js'
-import { selectChain, selectChainState } from '../global/slices/chains.js'
+import { importChain, selectChain, selectChainState } from '../global/slices/chains.js'
 import NotFoundError from './Errors/NotFoundError.js'
 import { useEffect } from 'react'
 import { getRouteParam } from '../helpers/routes.js'
 import { shortAddress } from '../helpers/hashDisplay.js'
+// import ShareIcon from '@mui/icons-material/Share';
+import { setStatusAlert, unsetAlert } from '../global/slices/status.js'
+import { InvalidArgument } from 'firmcore/src/exceptions/InvalidArgument.js'
 
 export default function FirmChain () {
   const routeMatch = useRouteMatcher(chainRouteMatcher)
@@ -26,6 +29,31 @@ export default function FirmChain () {
       setTab('overview')
     }
   }, [setTab, tabValue.length])
+
+  useEffect(() => {
+    if (chain === undefined) {
+      try {
+        const cidStr = address;
+        dispatch(setStatusAlert({
+          status: 'info',
+          msg: 'Importing firmchain...'
+        }));
+        dispatch(importChain(cidStr)).unwrap().then(chainPoint => {
+          dispatch(unsetAlert());
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          dispatch(setLocation(`/chains/${cidStr}`));
+        }).catch(err => {
+          if (!(err instanceof InvalidArgument)) {
+            console.error(err);
+          }
+        })
+      } catch (err) {
+        if (!(err instanceof InvalidArgument)) {
+          console.error(err);
+        }
+      }
+    }
+  }, [chain, address, dispatch])
 
   const handleTabChange = React.useCallback((event: React.SyntheticEvent, newValue: string) => {
     setTab(newValue)

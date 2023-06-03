@@ -9,13 +9,14 @@ import { selectFocusChainPoint, selectInitStatus } from '../global/slices/chains
 import { useAppSelector, useAppDispatch, useRouteMatcher } from '../global/hooks.js'
 import { rootRouteMatcher } from '../global/routes.js'
 import { selectStatusAlert } from '../global/slices/status.js'
+import { getRouteParam } from '../helpers/routes.js'
 
 const theme = createTheme()
 
 function App () {
   const dispatch = useAppDispatch()
   const routeMatch = useRouteMatcher(rootRouteMatcher)
-  const defaultChain = useAppSelector(selectFocusChainPoint)
+  const focusChain = useAppSelector(selectFocusChainPoint)
   const alert = useAppSelector(selectStatusAlert)
   const initStatus = useAppSelector(selectInitStatus);
 
@@ -25,15 +26,24 @@ function App () {
   useEffect(() => {
     if (initStatus === 'ready') {
       if (routeMatch.value == null) {
-        if (defaultChain == null) {
+        if (focusChain == null) {
           dispatch(setLocation('/newChain'))
         } else {
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          dispatch(setLocation(`/chains/${defaultChain.cidStr}`))
+          dispatch(setLocation(`/chains/${focusChain.cidStr}`))
+        }
+      } else {
+        // Ensure that we are always at focus chain location
+        const chainId = getRouteParam(routeMatch, 'chainId');
+        if (chainId !== undefined && focusChain !== undefined) {
+          if (chainId !== focusChain.cidStr) {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+            dispatch(setLocation(`/chains/${focusChain.cidStr}`))
+          }
         }
       }
     }
-  }, [routeMatch, dispatch, defaultChain, initStatus])
+  }, [routeMatch, dispatch, focusChain, initStatus])
 
   const Component = initStatus === 'ready' ? routeMatch.value : null;
 
