@@ -48,7 +48,7 @@
     "copy-to-clipboard": "^3.3.3",
     "date-fns": "^2.29.3",
     "feather-route-matcher": "^4.0.0",
-    "firmcore": "github:sim31/firmcore",
+    "firmcore": "github:sim31/firmcore#poc",
     "immer": "^9.0.19",
     "ipfs-unixfs-importer": "^15.1.1",
     "react": "^18.2.0",
