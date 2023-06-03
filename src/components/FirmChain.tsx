@@ -30,31 +30,6 @@ export default function FirmChain () {
     }
   }, [setTab, tabValue.length])
 
-  useEffect(() => {
-    if (chain === undefined) {
-      try {
-        const cidStr = address;
-        dispatch(setStatusAlert({
-          status: 'info',
-          msg: 'Importing firmchain...'
-        }));
-        dispatch(importChain(cidStr)).unwrap().then(chainPoint => {
-          dispatch(unsetAlert());
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          dispatch(setLocation(`/chains/${cidStr}`));
-        }).catch(err => {
-          if (!(err instanceof InvalidArgument)) {
-            console.error(err);
-          }
-        })
-      } catch (err) {
-        if (!(err instanceof InvalidArgument)) {
-          console.error(err);
-        }
-      }
-    }
-  }, [chain, address, dispatch])
-
   const handleTabChange = React.useCallback((event: React.SyntheticEvent, newValue: string) => {
     setTab(newValue)
   }, [setTab])

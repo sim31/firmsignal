@@ -1,6 +1,6 @@
 import { IWallet, BlockConfirmer } from 'firmcore/index.js';
 import { Wallet } from 'firmcore/src/wallet';
-import { Wallet as EthWallet } from 'firmcore/node_modules/ethers';
+import { Wallet as EthWallet } from 'ethers';
 import fcManager from 'firmcore';
 
 let _wallet: Promise<IWallet>;

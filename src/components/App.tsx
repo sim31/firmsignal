@@ -32,15 +32,6 @@ function App () {
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           dispatch(setLocation(`/chains/${focusChain.cidStr}`))
         }
-      } else {
-        // Ensure that we are always at focus chain location
-        const chainId = getRouteParam(routeMatch, 'chainId');
-        if (chainId !== undefined && focusChain !== undefined) {
-          if (chainId !== focusChain.cidStr) {
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-            dispatch(setLocation(`/chains/${focusChain.cidStr}`))
-          }
-        }
       }
     }
   }, [routeMatch, dispatch, focusChain, initStatus])
