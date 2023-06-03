@@ -99,9 +99,10 @@ export default function CreateChain () {
           name,
           symbol,
         };
-        const chain = await dispatch(createChain(args)).unwrap();
+        const chainPoint = await dispatch(createChain(args)).unwrap();
         dispatch(unsetAlert());
-        dispatch(setLocation(`/chains/${chain.address}`));
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        dispatch(setLocation(`/chains/${chainPoint.cidStr}`));
       } catch (err) {
         console.log(err);
         const msg = typeof err === 'object' && err !== null && 'message' in err ? err.message : err;

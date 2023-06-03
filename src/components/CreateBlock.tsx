@@ -15,7 +15,7 @@ type MsgId = string
 type MsgEntry = MsgContent & { id: MsgId, typeName: MsgTypeName }
 
 export default function CreateBlock () {
-  const { headBlock, chain } = useLatestBlocks()
+  const { headBlock, chainPoint } = useLatestBlocks()
   const height = (headBlock != null) ? headBlock.height + 1 : undefined
   const [msgs, setMsgs] = useState<Record<MsgId, MsgEntry>>({})
   const newMsgId = useIncrementingId('msg')
@@ -55,6 +55,8 @@ export default function CreateBlock () {
 
   const onSubmit = useCallback(
     async () => {
+      // FIXME: all of this logic should probably be in thunks
+
       // TODO: Show error if not enough information (like threshold not set)
       try {
         // TODO: Higher order thunk which sets the status message and handles errors
@@ -64,7 +66,9 @@ export default function CreateBlock () {
           msg: 'Creating firmchain...'
         }))
 
-        if (chain == null) {
+        const chain = chainPoint?.data;
+
+        if (chainPoint === undefined || chain === undefined) {
           throw new NotFound('Chain not found')
         }
 
@@ -76,10 +80,11 @@ export default function CreateBlock () {
           }
         })
 
-        const args = { chainAddr: chain.address, msgs: ms }
-        await dispatch(createBlock(args)).unwrap()
+        const args = { chainCIDStr: chainPoint.cidStr, msgs: ms }
+        const { newTag } = await dispatch(createBlock(args)).unwrap()
         dispatch(unsetAlert())
-        dispatch(setLocation(`/chains/${chain.address}`))
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        dispatch(setLocation(`/chains/${newTag.cidStr}`))
       } catch (err) {
         console.log(err)
         const msg =
@@ -90,7 +95,7 @@ export default function CreateBlock () {
           msg: `Failed creating new block. Error: ${msg}`
         }))
       }
-    }, [msgs, dispatch, chain])
+    }, [msgs, dispatch, chainPoint])
 
   function renderMessages () {
     // TODO: issue a token?

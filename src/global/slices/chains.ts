@@ -1,75 +1,96 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { type RootState } from '../store.js'
+import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { AppThunk, type RootState } from '../store.js'
 import { type WritableDraft } from 'immer/dist/types/types-external.js'
 import { ProgrammingError } from 'firmcore/src/exceptions/ProgrammingError.js'
-import type { Address, EFConstructorArgs, NormEFChainPOD, EFMsg, EFBlockPOD, BlockId, EFChainState, IFirmCore } from 'firmcore'
+import type { Address, EFConstructorArgs, NormEFChainPOD, EFMsg, EFBlockPOD, BlockId, EFChainState, IFirmCore, CIDStr, Tag } from 'firmcore'
 import fcManager from 'firmcore';
 import { InvalidArgument } from 'firmcore/src/exceptions/InvalidArgument.js'
 import { NotFound } from 'firmcore/src/exceptions/NotFound.js'
 import { waitForInit } from '../initWaiter.js'
 import { setStatusAlert } from './status.js'
+import anyToStr from 'firmcore/src/helpers/anyToStr.js'
+import { setLocation } from './appLocation.js'
 
-export type Chain = NormEFChainPOD
+export interface ChainPoint {
+  cidStr: CIDStr
+  name?: string /** name of a chain point */
+  data?: NormEFChainPOD
+}
+
+export type InitStatus = 'initializing' | 'ready';
 
 export interface Chains {
-  byAddress: Record<Address, Chain>
-  defaultChain?: Address
-  // TODO: Unify the status with other slices?
-  status: 'idle' | 'loading' | 'success' | 'failed'
+  byCID: Record<CIDStr, ChainPoint>
+  byName: Record<string, CIDStr>
+  focus: CIDStr | undefined
+
+  initStatus: InitStatus
   error?: string
 }
 
 const initialState: Chains = {
-  byAddress: {},
-  status: 'idle'
+  byCID: {},
+  byName: {},
+  focus: undefined,
+
+  initStatus: 'initializing',
 }
 
-function _addChain (state: WritableDraft<Chains>, chain: Chain): void {
-  // TODO: Proper validation of address
-  if (chain.address.length !== 0 && (state.byAddress[chain.address] == null)) {
-    state.byAddress[chain.address] = chain
-    if (state.defaultChain === undefined) {
-      state.defaultChain = chain.address
-    }
-  }
-}
-
-export interface EFCreateBlockArgs {
-  chainAddr: Address
-  msgs: EFMsg[]
-};
+// function _addChain (state: WritableDraft<Chains>, chain: Chain): void {
+//   // TODO: Proper validation of address
+//   if (chain.address.length !== 0 && (state.byAddress[chain.address] == null)) {
+//     state.byAddress[chain.address] = chain
+//     if (state.defaultChain === undefined) {
+//       state.defaultChain = chain.address
+//     }
+//   }
+// }
 
 export const tagFirmcore = createAsyncThunk(
   'chain/tagFirmcore',
-  async (tag: string): Promise<void> => {
+  async (tag: string, { dispatch }): Promise<void> => {
     await fcManager.tag(tag);
   }
 )
 
 export const createChain = createAsyncThunk(
   'chains/createChain',
-  async (args: EFConstructorArgs, { dispatch }): Promise<Chain> => {
+  async (args: EFConstructorArgs, { dispatch }): Promise<ChainPoint> => {
     // TODO: timeout?
     const { fc } = await waitForInit();
     const efChain = await fc.createEFChain(args)
     await dispatch(tagFirmcore(efChain.name)).unwrap();
-    return await efChain.getNormPODChain()
+    const data = await efChain.getNormPODChain()
+    const currentTag = fcManager.getCurrentTag();
+    if (currentTag === undefined) {
+      throw new Error('Expected a current tag to be set');
+    }
+    return {
+      name: efChain.name,
+      cidStr: currentTag.cidStr,
+      data
+    }
   }
 )
 
+export interface EFCreateBlockArgs {
+  chainCIDStr: CIDStr
+  msgs: EFMsg[]
+};
+
 export const createBlock = createAsyncThunk(
   'chains/createBlock',
-  async (args: EFCreateBlockArgs, { getState, dispatch }): Promise<{ args: EFCreateBlockArgs, block: EFBlockPOD }> => {
+  async (args: EFCreateBlockArgs, { getState, dispatch }): Promise<{ block: EFBlockPOD, newTag: Tag }> => {
     const { fc } = await waitForInit();
 
     const state = getState() as RootState
-    const chain = selectChain(state, args.chainAddr)
-    const headBl = selectHead(state, args.chainAddr)
+    const chain = selectChain(state, args.chainCIDStr)
+    const headBl = selectHead(state, args.chainCIDStr)
     if ((chain == null) || (headBl == null)) {
       throw new InvalidArgument('Cannot create a block for unknown chain')
     }
 
-    const efChain = await fc.getChain(args.chainAddr)
+    const efChain = await fc.getChain(chain.address);
     if (efChain == null) {
       throw new NotFound('Firmcore cannot find chain')
     }
@@ -83,7 +104,12 @@ export const createBlock = createAsyncThunk(
 
     await dispatch(tagFirmcore(efChain.name)).unwrap();
 
-    return { args, block: pod }
+    const newTag = fcManager.getCurrentTag();
+    if (newTag === undefined) {
+      throw new Error('Tag expected');
+    }
+
+    return { block: pod, newTag }
   }
 )
 
@@ -93,7 +119,7 @@ export interface RefreshChainArgs {
 
 export const updateChain = createAsyncThunk(
   'chains/updateChain',
-  async (args: RefreshChainArgs) => {
+  async (args: RefreshChainArgs, { dispatch }) => {
     const { fc } = await waitForInit();
 
     const efChain = await fc.getChain(args.chainAddress)
@@ -101,7 +127,16 @@ export const updateChain = createAsyncThunk(
       throw new NotFound('Chain not found')
     }
     const podChain = await efChain.getNormPODChain()
-    return podChain
+
+    const newTag = fcManager.getCurrentTag();
+    if (newTag === undefined) {
+      throw new Error('Tag expected to exist in updateChain');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    dispatch(setLocation(`/chains/${newTag.cidStr}`));
+
+    return { chainData: podChain, newTag };
   }
 )
 
@@ -139,66 +174,194 @@ export const chainsSlice = createSlice({
   initialState,
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
+    addChainPoint(state, action: PayloadAction<ChainPoint>) {
+      const point = action.payload;
+      if (Object.hasOwn(state.byCID, point.cidStr)) {
+        state.error = 'Chain point with this CID already exists';
+        return;
+      }
+      if (point.name !== undefined && Object.hasOwn(state.byName, point.name)) {
+        state.error = 'Chain point with this name already exists';
+        return;
+      }
+      state.byCID[point.cidStr] = point;
+      if (point.name !== undefined) {
+        state.byName[point.name] = point.cidStr;
+      }
+      state.error = undefined;
+    },
+
+    setFocus(state, action: PayloadAction<CIDStr>) {
+      const focus = action.payload;
+      if (state.byCID[focus] === undefined) {
+        state.error = 'Cannot focus on non-existent chain point';
+      } else {
+        state.focus = focus;
+        state.initStatus = 'ready';
+        state.error = undefined;
+      }
+    }
   },
   extraReducers: (builder) => {
     builder
       .addCase(createChain.pending, (state) => {
-        state.status = 'loading'
       })
       .addCase(createChain.fulfilled, (state, action) => {
-        state.status = 'success'
-        _addChain(state, action.payload)
+        const point = action.payload;
+        state.byCID[point.cidStr] = point;
+        if (point.name !== undefined) {
+          state.byName[point.name] = point.cidStr;
+        }
+        state.focus = point.cidStr;
       })
       .addCase(createChain.rejected, (state) => {
-        state.status = 'failed'
       })
 
       .addCase(createBlock.fulfilled, (state, action) => {
-        state.status = 'success'
-        const { block, args } = action.payload
-        const chain = state.byAddress[args.chainAddr]
-        if (chain == null) {
-          throw new ProgrammingError('Chain should be stored')
+        const { block, newTag } = action.payload
+        const oldCID = state.byName[newTag.name];
+        if (oldCID !== undefined) {
+          const oldData = state.byCID[oldCID]?.data;
+
+          delete state.byCID[oldCID];
+          delete state.byName[newTag.name];
+
+          if (oldData !== undefined) {
+            oldData.slots.proposed.push(block);
+          }
+          state.byCID[newTag.cidStr] = {
+            ...newTag,
+            data: oldData
+          }
+          state.byName[newTag.name] = newTag.cidStr;
+          state.focus = newTag.cidStr;
         }
-        chain.slots.proposed.push(block)
       })
       .addCase(updateChain.fulfilled, (state, action) => {
-        state.status = 'success'
-        const chain = action.payload
-        state.byAddress[chain.address] = chain
+        const { chainData, newTag } = action.payload
+        const oldCID = state.byName[newTag.name];
+        if (oldCID !== undefined) {
+          delete state.byCID[oldCID];
+          delete state.byName[newTag.name];
+
+          state.byCID[newTag.cidStr] = {
+            ...newTag,
+            data: chainData
+          }
+          state.byName[newTag.name] = newTag.cidStr;
+          state.focus = newTag.cidStr;
+        }
       })
   }
 })
 
-export const selectDefaultChainAddr = (state: RootState): Address | undefined => state.chains.defaultChain
-export const selectChainsByAddress = (state: RootState): Record<Address, Chain> => state.chains.byAddress
+// export const selectDefaultChainAddr = (state: RootState): Address | undefined => state.chains.defaultChain
+export const selectChainsPointsByCID = (state: RootState): Record<CIDStr, ChainPoint> => state.chains.byCID;
 // Use like this: const chain = useAppSelector(state => selectChain(state, "aaa"))
-export const selectChain = (state: RootState, address: Address): Chain | undefined =>
-  state.chains.byAddress[address]
+export const selectChainPoint =
+  (state: RootState, cid: CIDStr): ChainPoint | undefined =>
+    state.chains.byCID[cid];
 
-export const selectDefaultChain = (state: RootState): Chain | undefined => {
-  const defAddress = selectDefaultChainAddr(state)
-  if (defAddress !== undefined) {
-    return selectChain(state, defAddress)
-  } else {
-    return undefined
+export const selectChain =
+  (state: RootState, cid: CIDStr): NormEFChainPOD | undefined => {
+    const point = selectChainPoint(state, cid);
+    return point?.data;
   }
-}
 
-export const selectHead = (state: RootState, chainAddr: Address): EFBlockPOD | undefined => {
-  const chain = state.chains.byAddress[chainAddr]
-  if (chain !== undefined) {
-    return chain.slots.finalizedBlocks[chain.slots.finalizedBlocks.length - 1];
+export const selectFocusChainPoint =
+  (state: RootState): ChainPoint | undefined => {
+    if (state.chains.focus !== undefined) {
+      return state.chains.byCID[state.chains.focus];
+    } else {
+      return undefined;
+    }
+  }
+
+export const selectFocusChain =
+  (state: RootState): NormEFChainPOD | undefined =>
+    selectFocusChainPoint(state)?.data;
+
+// export const selectDefaultChain = (state: RootState): Chain | undefined => {
+//   const defAddress = selectDefaultChainAddr(state)
+//   if (defAddress !== undefined) {
+//     return selectChain(state, defAddress)
+//   } else {
+//     return undefined
+//   }
+// }
+
+export const selectHead = (state: RootState, cid: CIDStr): EFBlockPOD | undefined => {
+  const point = state.chains.byCID[cid];
+  if (point !== undefined) {
+    return point.data?.slots.finalizedBlocks[point.data?.slots.finalizedBlocks.length - 1];
   } else {
     return undefined;
   }
 }
 
-export const selectChainName = (state: RootState, address: Address): string | undefined =>
-  (selectChain(state, address))?.name
+export const selectChainName = (state: RootState, cidStr: CIDStr): string | undefined =>
+  (selectChain(state, cidStr))?.name
 
 export const selectChainState = (state: RootState, chainAddr: Address): EFChainState | undefined => {
   return (selectHead(state, chainAddr))?.state
 }
+
+export const selectInitStatus = (state: RootState): InitStatus =>
+  state.chains.initStatus;
+
+// export const { setStatusAlert, unsetAlert } = statusSlice.actions
+export const { addChainPoint, setFocus } = chainsSlice.actions;
+
+export const init =
+  (): AppThunk => async (dispatch, getState) => {
+    try {
+      const { fc } = await waitForInit();
+      const tags = await fcManager.getTagsByName(true);
+      const pointsByCID: Record<CIDStr, ChainPoint> = {}
+      for (const tag of Object.values(tags)) {
+        pointsByCID[tag.cidStr] = {
+          name: tag.name,
+          cidStr: tag.cidStr
+        }
+      }
+
+      const chainAddr = (await fc.lsChains())[0];
+      let focus: CIDStr | undefined;
+      if (chainAddr !== undefined) {
+        const efChain = await fc.getChain(chainAddr);
+        if (efChain === undefined) {
+          throw new ProgrammingError('Expected to find chain');
+        }
+        const chainData = await efChain.getNormPODChain();
+        const currentTag = fcManager.getCurrentTag();
+        if (currentTag === undefined) {
+          throw new ProgrammingError('Expected to find tag');
+        }
+        focus = currentTag.cidStr;
+        const currentPoint = pointsByCID[focus];
+        if (currentPoint === undefined) {
+          throw new ProgrammingError('Expected to find chain point');
+        }
+        currentPoint.data = chainData;
+      }
+
+      for (const point of Object.values(pointsByCID)) {
+        dispatch(addChainPoint(point));
+      }
+      if (focus !== undefined) {
+        dispatch(setFocus(focus));
+      }
+    } catch (err: any) {
+      const errStr = anyToStr(err);
+      // TODO: why does it complain
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      const str = `Failed initializing chains: ${errStr}`;
+      console.error(str);
+      dispatch(setStatusAlert({
+        status: 'error',
+        msg: str
+      }));
+    }
+  }
 
 export default chainsSlice.reducer

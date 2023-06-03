@@ -7,7 +7,7 @@ import {
 import { customTextWidthCss } from '../helpers/hashDisplay.js'
 import { useCopyCallback, useAppSelector, useAppDispatch, useRouteMatcher } from '../global/hooks.js'
 import { rootRouteMatcher } from '../global/routes.js'
-import { selectChainName, selectChainsByAddress } from '../global/slices/chains.js'
+import { selectChainName, selectChainsPointsByCID } from '../global/slices/chains.js'
 import { setLocation } from '../global/slices/appLocation.js'
 import { getRouteParam } from '../helpers/routes.js'
 import { loadWallet, selectCurrentAccount } from '../global/slices/accounts.js'
@@ -72,7 +72,7 @@ const StyledAddrBlack = styled(ShortenedAddr)(({ theme }) => ({
 
 export default function FirmBar () {
   const routeMatch = useRouteMatcher(rootRouteMatcher)
-  const chainsByAddr = useAppSelector(selectChainsByAddress)
+  const chainsByCID = useAppSelector(selectChainsPointsByCID)
   const currentAccount = useAppSelector(selectCurrentAccount)
   const chainId = getRouteParam(routeMatch, 'chainId', '')
   const name = useAppSelector(
@@ -102,10 +102,10 @@ export default function FirmBar () {
   const handleAccountCopy = useCopyCallback(dispatch, currentAccount)
 
   function renderMenuItems () {
-    const items = Object.values(chainsByAddr).map((chain) => {
-      const title = chain.name ?? chain.address
+    const items = Object.values(chainsByCID).map((chainPoint) => {
+      const title = chainPoint.name ?? chainPoint.cidStr
       return (
-        <MenuItem value={chain.address} key={chain.address}>{title}</MenuItem>
+        <MenuItem value={chainPoint.cidStr} key={chainPoint.cidStr}>{title}</MenuItem>
       )
     })
 

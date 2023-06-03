@@ -8,10 +8,8 @@ import { useLatestBlocks } from '../global/hooks.js'
 import { useMemo } from 'react'
 import firmcore, { type Account, type Address } from 'firmcore'
 
-const NullDir = firmcore.NullIPFSLink;
-
 export default function FirmState () {
-  const { chain, headBlock, finalized, proposed } = useLatestBlocks()
+  const { chainPoint, headBlock, finalized, proposed } = useLatestBlocks()
 
   const directoryId = headBlock?.state.directoryId;
   // FIXME:
@@ -37,7 +35,7 @@ export default function FirmState () {
   }, [headBlock])
 
   function renderBlockList () {
-    if (chain != null) {
+    if (chainPoint !== undefined && finalized !== undefined) {
       const allBlocks = [...finalized, ...proposed]
       allBlocks.reverse()
       const blockCards = allBlocks.map((bl) => {

@@ -5,7 +5,7 @@ import {
 import type { RootState, AppDispatch } from './store.js'
 import routeMatcher from 'feather-route-matcher'
 import { chainRouteMatcher } from './routes.js'
-import { type Chain, selectChain } from './slices/chains.js'
+import { type ChainPoint, selectChainPoint } from './slices/chains.js'
 import { getRouteParam } from '../helpers/routes.js'
 import { useCallback } from 'react'
 import copy from 'copy-to-clipboard'
@@ -25,22 +25,24 @@ export const useRouteMatcher = <T>(matcher: ReturnType<typeof routeMatcher.defau
 export function useCurrentChainRoute () {
   const routeMatch = useRouteMatcher(chainRouteMatcher)
   const address = getRouteParam(routeMatch, 'chainId', '')
-  const chain: Chain | undefined = useAppSelector(state => selectChain(state, address))
-  return { chain, routeMatch }
+  const chainPoint: ChainPoint | undefined = useAppSelector(state => selectChainPoint(state, address))
+  return { chainPoint, routeMatch }
 }
 
 // TODO: use maxBlocks argument
 export function useLatestBlocks (maxBlocks: number = 6) {
-  const { chain, routeMatch } = useCurrentChainRoute()
-  if (chain == null) {
+  const { chainPoint, routeMatch } = useCurrentChainRoute()
+  if (chainPoint === undefined || chainPoint.data === undefined) {
     return {
-      chain,
+      chainPoint,
       routeMatch,
       finalized: new Array<TaggedBlock>(),
       proposed: new Array<TaggedBlock>(),
       headBlock: undefined
     }
   }
+
+  const chain = chainPoint.data;
 
   const { finalized, proposed } = tagBlocks(chain.slots)
 
@@ -50,7 +52,7 @@ export function useLatestBlocks (maxBlocks: number = 6) {
     'Tag of the head block has to be consensus or genesis'
   )
 
-  return { chain, routeMatch, finalized, proposed, headBlock }
+  return { chainPoint, routeMatch, finalized, proposed, headBlock }
 }
 
 export function useCopyCallback (dispatch: ReturnType<typeof useAppDispatch>, value: any) {

@@ -15,8 +15,6 @@ export default function FirmChain () {
   const tabValue = getRouteParam(rootRouteMatch, 'tab', '')
   const address = getRouteParam(routeMatch, 'chainId', '')
   const chain = useAppSelector(state => selectChain(state, address))
-  const chainState = useAppSelector(state =>
-    (chain != null) && selectChainState(state, chain.address))
   const dispatch = useAppDispatch()
 
   const setTab = React.useCallback((tabValue: string) => {
