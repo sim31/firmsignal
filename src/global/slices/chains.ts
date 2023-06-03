@@ -80,7 +80,7 @@ export interface EFCreateBlockArgs {
 
 export const createBlock = createAsyncThunk(
   'chains/createBlock',
-  async (args: EFCreateBlockArgs, { getState, dispatch }): Promise<{ block: EFBlockPOD, newTag: Tag }> => {
+  async (args: EFCreateBlockArgs, { getState, dispatch }) => {
     const { fc } = await waitForInit();
 
     const state = getState() as RootState
@@ -101,6 +101,7 @@ export const createBlock = createAsyncThunk(
     if (pod == null) {
       throw new NotFound("Couldn't find block just created")
     }
+    const chainPod = await efChain.getNormPODChain();
 
     await dispatch(tagFirmcore(efChain.name)).unwrap();
 
@@ -109,7 +110,7 @@ export const createBlock = createAsyncThunk(
       throw new Error('Tag expected');
     }
 
-    return { block: pod, newTag }
+    return { data: chainPod, newTag }
   }
 )
 
@@ -142,7 +143,7 @@ export const updateChain = createAsyncThunk(
 
 export const importChain = createAsyncThunk(
   'chains/importChain',
-  async (cidStr: CIDStr, { dispatch }) => {
+  async (cidStr: CIDStr, { dispatch, getState }) => {
     try {
       const fc = await fcManager.selectByCID(cidStr);
 
@@ -162,6 +163,13 @@ export const importChain = createAsyncThunk(
           data: chainData
         };
         focus = cidStr
+
+        const st = getState() as RootState;
+        const existing = st.chains.byName[chainData.name];
+        if (existing === undefined) {
+          await dispatch(tagFirmcore(chainData.name));
+          chainPoint.name = chainData.name;
+        }
       }
       return { chainPoint, focus };
     } catch (err: any) {
@@ -298,24 +306,19 @@ export const chainsSlice = createSlice({
       })
 
       .addCase(createBlock.fulfilled, (state, action) => {
-        const { block, newTag } = action.payload
+        const { data, newTag } = action.payload
         const oldCID = state.byName[newTag.name];
         if (oldCID !== undefined) {
-          const oldData = state.byCID[oldCID]?.data;
-
           delete state.byCID[oldCID];
           delete state.byName[newTag.name];
-
-          if (oldData !== undefined) {
-            oldData.slots.proposed.push(block);
-          }
-          state.byCID[newTag.cidStr] = {
-            ...newTag,
-            data: oldData
-          }
-          state.byName[newTag.name] = newTag.cidStr;
-          state.focus = newTag.cidStr;
         }
+
+        state.byCID[newTag.cidStr] = {
+          ...newTag,
+          data
+        }
+        state.byName[newTag.name] = newTag.cidStr;
+        state.focus = newTag.cidStr;
       })
       .addCase(updateChain.fulfilled, (state, action) => {
         const { chainData, newTag } = action.payload
