@@ -90,7 +90,6 @@ export default function CreateChain () {
               ...c,
               id: 0,
               extAccounts: {
-                ipns: c.extAccounts
               }
             }
           });

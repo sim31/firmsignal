@@ -6,6 +6,7 @@ import status, { setStatusAlert } from './slices/status.js'
 import anyToStr from 'firmcore/src/helpers/anyToStr.js'
 import { init as walletsInit } from './wallets.js';
 import fcManager from 'firmcore';
+import { DependencyMissing } from 'firmcore/src/exceptions/DependencyMissing.js'
 
 export const store = configureStore({
   reducer: {
@@ -20,9 +21,21 @@ async function initFc() {
   try {
     store.dispatch(setStatusAlert({
       status: 'info',
-      msg: 'Loading...'
+      msg: 'Loading... (you may have to login through metamask)'
     }))
-    await fcManager.get();
+    try {
+      await fcManager.get(true);
+    } catch (err: unknown) {
+      if (err instanceof DependencyMissing) {
+        store.dispatch(setStatusAlert({
+          status: 'info',
+          msg: 'Have to deploy dependencies. Sign deployement transactions with Metamask to continue...'
+        }));
+        await fcManager.get();
+      } else {
+        throw err;
+      }
+    }
     await walletsInit();
     await store.dispatch(loadWallet()).unwrap();
     store.dispatch(setStatusAlert({ status: 'none' }))
