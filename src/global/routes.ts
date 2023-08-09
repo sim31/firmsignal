@@ -10,7 +10,6 @@ import ImportChain from '../components/ImportChain.js'
 
 const rootRouteMatcher = createMatcher.default({
   '/newChain': CreateChain,
-  '/importChain': ImportChain,
   '/chains/:chainId': FirmChain,
   '/chains/:chainId/:tab': FirmChain,
   '/chains/:chainId/:tab/*': FirmChain,

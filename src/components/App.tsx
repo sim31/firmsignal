@@ -5,7 +5,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles'
 import {
   setLocation
 } from '../global/slices/appLocation.js'
-import { selectFocusChainPoint, selectInitStatus } from '../global/slices/chains.js'
+import { selectFocusChain, selectStatus } from '../global/slices/chains.js'
 import { useAppSelector, useAppDispatch, useRouteMatcher } from '../global/hooks.js'
 import { rootRouteMatcher } from '../global/routes.js'
 import { selectStatusAlert } from '../global/slices/status.js'
@@ -16,9 +16,9 @@ const theme = createTheme()
 function App () {
   const dispatch = useAppDispatch()
   const routeMatch = useRouteMatcher(rootRouteMatcher)
-  const focusChain = useAppSelector(selectFocusChainPoint)
+  const focusChain = useAppSelector(selectFocusChain)
   const alert = useAppSelector(selectStatusAlert)
-  const initStatus = useAppSelector(selectInitStatus);
+  const initStatus = useAppSelector(selectStatus);
 
   // Create a wallet if there's none
 
@@ -30,7 +30,7 @@ function App () {
           dispatch(setLocation('/newChain'))
         } else {
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          dispatch(setLocation(`/chains/${focusChain.cidStr}`))
+          dispatch(setLocation(`/chains/${focusChain.address}`))
         }
       }
     }

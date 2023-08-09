@@ -7,7 +7,7 @@ import {
 import { customTextWidthCss } from '../helpers/hashDisplay.js'
 import { useCopyCallback, useAppSelector, useAppDispatch, useRouteMatcher } from '../global/hooks.js'
 import { rootRouteMatcher } from '../global/routes.js'
-import { selectChainPointName, selectChainsPointsByCID, selectFocusChain, selectFocusChainPoint, switchChain } from '../global/slices/chains.js'
+import { selectChainName, selectChainsByAddress, selectFocusChain, setFocusChain } from '../global/slices/chains.js'
 import { setLocation } from '../global/slices/appLocation.js'
 import { getRouteParam } from '../helpers/routes.js'
 import { loadWallet, selectCurrentAccount } from '../global/slices/accounts.js'
@@ -73,14 +73,12 @@ const StyledAddrBlack = styled(ShortenedAddr)(({ theme }) => ({
 
 export default function FirmBar () {
   const routeMatch = useRouteMatcher(rootRouteMatcher)
-  const chainsByCID = useAppSelector(selectChainsPointsByCID)
+  const chainsByAddr = useAppSelector(selectChainsByAddress)
   const currentAccount = useAppSelector(selectCurrentAccount)
   const chainId = getRouteParam(routeMatch, 'chainId', '')
   const name = useAppSelector(
-    state => selectChainPointName(state, chainId)
+    state => selectChainName(state, chainId)
   )
-  const focusChain = useAppSelector(selectFocusChainPoint);
-
   const dispatch = useAppDispatch()
 
   const chainValue = React.useMemo(() => {
@@ -102,36 +100,22 @@ export default function FirmBar () {
     if (val === 'newChain' || val === 'importChain') {
       dispatch(setLocation(val));
     } else {
-      if (focusChain?.cidStr === val) {
-        dispatch(setLocation(`/chains/${val}`));
-      } else {
-        dispatch(setStatusAlert({
-          status: 'info',
-          msg: 'Loading firmchain...'
-        }));
-        void dispatch(switchChain(val)).unwrap().then(() => {
-          dispatch(setLocation(`/chains/${val}`));
-          dispatch(unsetAlert());
-        })
-      }
+      dispatch(setLocation(`/chains/${val}`));
     }
-  }, [dispatch, focusChain])
+  }, [dispatch])
 
   const handleAccountCopy = useCopyCallback(dispatch, currentAccount)
 
   function renderMenuItems () {
-    const items = Object.values(chainsByCID).map((chainPoint) => {
-      const title = chainPoint.name ?? chainPoint.cidStr;
+    const items = Object.values(chainsByAddr).map((chain) => {
+      const title = chain.name;
       return (
-        <MenuItem value={chainPoint.cidStr} key={chainPoint.cidStr}>{title}</MenuItem>
+        <MenuItem value={chain.address} key={chain.address}>{title}</MenuItem>
       )
     })
 
     items.push((
       <MenuItem value="newChain" key="new">New Chain</MenuItem>
-    ))
-    items.push((
-      <MenuItem value="importChain" key="new">Import Chain</MenuItem>
     ))
 
     return items
@@ -144,8 +128,8 @@ export default function FirmBar () {
       text = 'New Chain'
     } else if (value === undefined || value === '') {
       text = 'Select Chain'
-    } else if (value === 'importChain') {
-      text = 'Import Chain'
+    // } else if (value === 'importChain') {
+    //   text = 'Import Chain'
     } else if (name !== undefined) {
       text = name
     } else {

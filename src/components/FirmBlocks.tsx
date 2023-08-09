@@ -21,7 +21,7 @@ const BlockTabs = styled(Tabs)({
 })
 
 export default function FirmBlocks () {
-  const { finalized, proposed, headBlock, routeMatch, chainPoint } = useLatestBlocks()
+  const { finalized, proposed, headBlock, routeMatch, chain } = useLatestBlocks()
   const selectedBlockId = getRouteParam(routeMatch, 'block', '')
   const dispatch = useAppDispatch()
   const [confirmOpen, setConfirmOpen] = useState<boolean>(false)
@@ -40,13 +40,13 @@ export default function FirmBlocks () {
   }, [finalized, proposed, selectedBlockId])
 
   const selectBlock = useCallback((tabValue: string) => {
-    if (chainPoint !== undefined) {
+    if (chain !== undefined) {
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      dispatch(setLocation(`/chains/${chainPoint.cidStr}/blocks/${tabValue}`));
+      dispatch(setLocation(`/chains/${chain.address}/blocks/${tabValue}`));
     } else {
       dispatch(setLocation('/'));
     }
-  }, [chainPoint, dispatch]);
+  }, [chain, dispatch]);
 
   useEffect(() => {
     if (selectedBlockId.length === 0 && (headBlock != null)) {
@@ -202,12 +202,12 @@ export default function FirmBlocks () {
 
       {renderMessages()}
 
-      {(block != null) && accountAddr !== undefined && (chainPoint?.data !== undefined) &&
+      {(block != null) && accountAddr !== undefined && (chain !== undefined) &&
         <ConfirmDialog
           open={confirmOpen}
           block={block}
           confirmerAddress={accountAddr}
-          chainAddr={chainPoint.data.address}
+          chainAddr={chain.address}
           onReject={() => { setConfirmOpen(false) }}
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
           onAccept={onConfirmAccept}

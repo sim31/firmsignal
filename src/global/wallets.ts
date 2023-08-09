@@ -1,7 +1,7 @@
 import { IWallet, BlockConfirmer } from 'firmcore/index.js';
 import { Wallet } from 'firmcore/src/wallet';
 import { Wallet as EthWallet } from 'ethers';
-import fcManager from 'firmcore';
+import fc from 'firmcore';
 
 let _wallet: Promise<IWallet>;
 let _walletVal: IWallet | undefined;
@@ -39,7 +39,6 @@ export async function loadWallet() {
 
 export async function loadConfirmer() {
   const wallet = await loadWallet();
-  const fc = await fcManager.get();
   const conf = await fc.createWalletConfirmer(wallet);
   return conf;
 }

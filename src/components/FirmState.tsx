@@ -9,7 +9,7 @@ import { useMemo } from 'react'
 import firmcore, { type Account, type Address } from 'firmcore'
 
 export default function FirmState () {
-  const { chainPoint, headBlock, finalized, proposed } = useLatestBlocks()
+  const { chain, headBlock, finalized, proposed } = useLatestBlocks()
 
   const directoryId = headBlock?.state.directoryId;
   // FIXME:
@@ -35,7 +35,7 @@ export default function FirmState () {
   }, [headBlock])
 
   function renderBlockList () {
-    if (chainPoint !== undefined && finalized !== undefined) {
+    if (chain !== undefined && finalized !== undefined) {
       const allBlocks = [...finalized, ...proposed]
       allBlocks.reverse()
       const blockCards = allBlocks.map((bl) => {

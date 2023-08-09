@@ -3,7 +3,7 @@ import { Box, Button, Container, Paper, Stack, TextField, Typography } from '@mu
 import { isValidCid0, parseIPFSId, urlToCid0 } from 'firmcore/src/helpers/cid.js';
 import { InvalidArgument } from 'firmcore/src/exceptions/InvalidArgument.js';
 import { useAppDispatch } from '../global/hooks.js';
-import { importChain } from '../global/slices/chains.js';
+// import { importChain } from '../global/slices/chains.js';
 import { setStatusAlert, unsetAlert } from '../global/slices/status.js';
 import { setLocation } from '../global/slices/appLocation.js';
 
@@ -25,10 +25,10 @@ export default function ImportChain() {
         status: 'info',
         msg: 'Importing firmchain...'
       }));
-      const { chainPoint } = await dispatch(importChain(cidStr)).unwrap();
+      // const { chainPoint } = await dispatch(importChain(cidStr)).unwrap();
       dispatch(unsetAlert());
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      dispatch(setLocation(`/chains/${chainPoint?.cidStr}`))
+      // dispatch(setLocation(`/chains/${chainPoint?.cidStr}`))
     } catch (err) {
       if (!(err instanceof InvalidArgument)) {
         console.error(err);

@@ -1,11 +1,12 @@
 import { configureStore, type ThunkAction, type Action } from '@reduxjs/toolkit'
 import appLocation, { setLocation } from './slices/appLocation.js'
 import chains, { init as chainsInit } from './slices/chains.js'
+// import chains from './slices/chains.js'
 import accounts, { loadWallet } from './slices/accounts.js'
 import status, { setStatusAlert } from './slices/status.js'
 import anyToStr from 'firmcore/src/helpers/anyToStr.js'
 import { init as walletsInit } from './wallets.js';
-import fcManager from 'firmcore';
+import fc, { IFirmCore } from 'firmcore';
 import { DependencyMissing } from 'firmcore/src/exceptions/DependencyMissing.js'
 
 export const store = configureStore({
@@ -17,21 +18,21 @@ export const store = configureStore({
   }
 })
 
-async function initFc() {
+async function initFc(): Promise<IFirmCore> {
   try {
     store.dispatch(setStatusAlert({
       status: 'info',
       msg: 'Loading... (you may have to login through metamask)'
     }))
     try {
-      await fcManager.get(true);
+      await fc.init(undefined, true);
     } catch (err: unknown) {
       if (err instanceof DependencyMissing) {
         store.dispatch(setStatusAlert({
           status: 'info',
           msg: 'Have to deploy dependencies. Sign deployement transactions with Metamask to continue...'
         }));
-        await fcManager.get();
+        await fc.init();
       } else {
         throw err;
       }
@@ -39,7 +40,8 @@ async function initFc() {
     await walletsInit();
     await store.dispatch(loadWallet()).unwrap();
     store.dispatch(setStatusAlert({ status: 'none' }))
-    store.dispatch(chainsInit());
+    await store.dispatch(chainsInit()).unwrap();
+    return fc;
   } catch (err: any) {
     const errStr = anyToStr(err);
     // TODO: why does it complain
@@ -50,10 +52,15 @@ async function initFc() {
       status: 'error',
       msg: str
     }));
+    throw err;
   }
 }
 
-const fsPromise = initFc();
+const fcPromise = initFc();
+
+export async function getFirmcore(): Promise<IFirmCore> {
+  return await fcPromise;
+}
 
 /**
  * This syncs:

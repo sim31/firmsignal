@@ -98,10 +98,10 @@ export default function CreateChain () {
           name,
           symbol,
         };
-        const chainPoint = await dispatch(createChain(args)).unwrap();
+        const chain = await dispatch(createChain(args)).unwrap();
         dispatch(unsetAlert());
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        dispatch(setLocation(`/chains/${chainPoint.cidStr}`));
+        dispatch(setLocation(`/chains/${chain.address}`));
       } catch (err) {
         console.log(err);
         const msg = typeof err === 'object' && err !== null && 'message' in err ? err.message : err;
@@ -175,7 +175,7 @@ export default function CreateChain () {
               onChange={onNameChange}
             />
 
-            {/* <TextField
+            <TextField
               required
               id="symbol"
               label="Symbol"
@@ -183,7 +183,7 @@ export default function CreateChain () {
               sx={{ maxWidth: '8em' }}
               value={symbol}
               onChange={onSymbolChange}
-            /> */}
+            />
 
           </Stack>
 

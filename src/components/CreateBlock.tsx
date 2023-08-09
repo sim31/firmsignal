@@ -15,7 +15,7 @@ type MsgId = string
 type MsgEntry = MsgContent & { id: MsgId, typeName: MsgTypeName }
 
 export default function CreateBlock () {
-  const { headBlock, chainPoint } = useLatestBlocks()
+  const { headBlock, chain } = useLatestBlocks()
   const height = (headBlock != null) ? headBlock.height + 1 : undefined
   const [msgs, setMsgs] = useState<Record<MsgId, MsgEntry>>({})
   const newMsgId = useIncrementingId('msg')
@@ -66,9 +66,7 @@ export default function CreateBlock () {
           msg: 'Creating firmchain...'
         }))
 
-        const chain = chainPoint?.data;
-
-        if (chainPoint === undefined || chain === undefined) {
+        if (chain === undefined || chain === undefined) {
           throw new NotFound('Chain not found')
         }
 
@@ -80,11 +78,11 @@ export default function CreateBlock () {
           }
         })
 
-        const args = { chainCIDStr: chainPoint.cidStr, msgs: ms }
-        const { newTag } = await dispatch(createBlock(args)).unwrap()
+        const args = { chainAddr: chain.address, msgs: ms }
+        await dispatch(createBlock(args)).unwrap()
         dispatch(unsetAlert())
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        dispatch(setLocation(`/chains/${newTag.cidStr}`))
+        dispatch(setLocation(`/chains/${chain.address}`))
       } catch (err) {
         console.log(err)
         const msg =
@@ -95,7 +93,7 @@ export default function CreateBlock () {
           msg: `Failed creating new block. Error: ${msg}`
         }))
       }
-    }, [msgs, dispatch, chainPoint])
+    }, [msgs, dispatch, chain])
 
   function renderMessages () {
     // TODO: issue a token?
