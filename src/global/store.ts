@@ -8,18 +8,22 @@ import anyToStr from 'firmcore/src/helpers/anyToStr.js'
 import { init as walletsInit } from './wallets.js';
 import fc, { IFirmCore } from 'firmcore';
 import { DependencyMissing } from 'firmcore/src/exceptions/DependencyMissing.js'
+import mounts, { init as mountsInit } from './slices/mounts.js'
 
 export const store = configureStore({
   reducer: {
     appLocation,
     chains,
     accounts,
+    mounts,
     status
   }
 })
 
 async function initFc(): Promise<IFirmCore> {
   try {
+    await store.dispatch(mountsInit()).unwrap();
+
     store.dispatch(setStatusAlert({
       status: 'info',
       msg: 'Loading... (you may have to login through metamask)'
@@ -37,6 +41,7 @@ async function initFc(): Promise<IFirmCore> {
         throw err;
       }
     }
+
     await walletsInit();
     await store.dispatch(loadWallet()).unwrap();
     store.dispatch(setStatusAlert({ status: 'none' }))

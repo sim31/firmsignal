@@ -14,6 +14,8 @@ import { loadWallet, selectCurrentAccount } from '../global/slices/accounts.js'
 import { useCallback, useEffect } from 'react'
 import * as ContentCopyIcon from '@mui/icons-material/ContentCopy.js'
 import { setStatusAlert, unsetAlert } from '../global/slices/status.js'
+import { selectCurrentMountpoint } from '../global/slices/mounts.js'
+import * as AdjustIcon from '@mui/icons-material/Adjust.js';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -79,7 +81,11 @@ export default function FirmBar () {
   const name = useAppSelector(
     state => selectChainName(state, chainId)
   )
+  const mountpoint = useAppSelector(selectCurrentMountpoint);
   const dispatch = useAppDispatch()
+
+  const mpColor = mountpoint?.status === 'connected' ? 'white' : 'red';
+  const mpText = mountpoint?.name !== 'unknown' ? mountpoint?.name : mountpoint?.id;
 
   const chainValue = React.useMemo(() => {
     if (routeMatch.value == null) {
@@ -184,13 +190,21 @@ export default function FirmBar () {
             />
           </Search>
 
+          { mpText !== undefined &&
+            <>
+              <AdjustIcon.default sx={{ mr: '0.5em', color: mpColor }}/>
+              <span>{mpText} </span>
+            </>
+
+          }
+
           {/* TODO: Render in a wayt that is clearer that this is the account */}
           { currentAccount !== undefined &&
             <>
-              <ShortenedAddr>{currentAccount}</ShortenedAddr>
               <IconButton sx={{ color: 'white' }} onClick={handleAccountCopy}>
                 <ContentCopyIcon.default />
               </IconButton>
+              <ShortenedAddr>{currentAccount}</ShortenedAddr>
             </>
           }
         </Toolbar>
