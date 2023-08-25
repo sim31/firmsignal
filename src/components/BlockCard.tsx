@@ -5,9 +5,8 @@ import {
 } from '@mui/material'
 import { useMemo } from 'react'
 import { useAppDispatch, useCopyCallback } from '../global/hooks.js'
-import { EFBlockPOD } from 'firmcore'
 import { type TaggedBlock, blockTagsStr } from '../utils/blockTags.js'
-import { dateToStr, timestampToDate, timestampToDateStr } from 'firmcore/src/helpers/date.js'
+import { timestampToDateStr } from 'firmcore/src/helpers/date.js'
 import { confirmationsText } from '../helpers/confirmationsDisplay.js'
 import { shortBlockId } from '../helpers/hashDisplay.js'
 
@@ -23,7 +22,6 @@ export interface BlockCardProps {
 
 export default function BlockCard ({ block }: BlockCardProps) {
   const dispatch = useAppDispatch()
-  const state = block.state
 
   const confirmText = useMemo(() => {
     // Genesis block does not need confirmations but it might have them
@@ -38,7 +36,7 @@ export default function BlockCard ({ block }: BlockCardProps) {
   const confirmed = false
 
   const dateStr = useMemo(() => {
-    return timestampToDateStr(block.timestamp)
+    return block.timestamp !== undefined ? timestampToDateStr(block.timestamp) : '';
   }, [block])
 
   const handleIdCopy = useCopyCallback(dispatch, block.id)
@@ -78,9 +76,11 @@ export default function BlockCard ({ block }: BlockCardProps) {
         </Stack>
 
         <Stack direction="row" spacing={1}>
-          <Typography variant="body2">
-            Messages: {block.msgs.length}
-          </Typography>
+          { block.msgs !== undefined &&
+            <Typography variant="body2">
+              Messages: {block.msgs.length}
+            </Typography>
+          }
           <Button size='small' sx={{ padding: 0 }}>
             Show
           </Button>
