@@ -1,8 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { type RootState } from '../store.js'
-import { type WritableDraft } from 'immer/dist/types/types-external.js'
+// import { type WritableDraft } from 'immer/dist/types/types-external.js'
 import { ProgrammingError } from 'firmcore/src/exceptions/ProgrammingError.js'
-import firmcore, { type Address, type EFConstructorArgs, type NormEFChainPOD, type EFMsg, type EFBlockPOD, type BlockId, type EFChainState, EFChain } from 'firmcore'
+import firmcore, { type Address, type EFConstructorArgs, type EFMsg, type EFBlockPOD, type BlockId, type EFChainState, EFChain, MNormEFChainPOD } from 'firmcore'
 import { InvalidArgument } from 'firmcore/src/exceptions/InvalidArgument.js'
 import { NotFound } from 'firmcore/src/exceptions/NotFound.js'
 import { waitForInit } from '../initWaiter.js'
@@ -13,7 +13,7 @@ export interface ShallowChain {
   symbol: string
 }
 
-export type FullChain = NormEFChainPOD;
+export type FullChain = MNormEFChainPOD;
 
 export type Chain = FullChain | ShallowChain;
 

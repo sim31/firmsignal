@@ -63,7 +63,7 @@ export default function CreateBlock () {
         // TODO: Spinner
         dispatch(setStatusAlert({
           status: 'info',
-          msg: 'Creating firmchain...'
+          msg: 'Creating a block...'
         }))
 
         if (chain === undefined || chain === undefined) {

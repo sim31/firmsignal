@@ -87,16 +87,18 @@ export default function FirmBlocks () {
     }
   }, [dispatch])
 
-  function renderLabel (num: number, tags: string, date: string) {
+  function renderLabel (num: number, tags: string, date?: string) {
     return (
       <>
         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
           {`#${num} `}
           {tags}
         </Typography>
-        <Typography variant="h5" component="div">
-          {date}
-        </Typography>
+        {date !== undefined &&
+          <Typography variant="h5" component="div">
+            {date}
+          </Typography>
+        }
       </>
     )
   }
@@ -104,10 +106,11 @@ export default function FirmBlocks () {
   function renderBlockTabs () {
     return [...finalized, ...proposed].reverse().map((bl) => {
       const tagStr = blockTagsStr(bl.tags)
+      const date = bl.timestamp !== undefined ? timestampToDateStr(bl.timestamp) : undefined;
       return (
         <Tab
           key={bl.id}
-          label={renderLabel(bl.height, tagStr, timestampToDateStr(bl.timestamp))}
+          label={renderLabel(bl.height, tagStr, date)}
           value={bl.id}
         />
       )
@@ -115,7 +118,7 @@ export default function FirmBlocks () {
   }
 
   function renderMessages () {
-    if (block == null) {
+    if (block === undefined || block.msgs === undefined) {
       return
     }
     const msgs = Object.values(block.msgs).map((msg, index) => {
@@ -175,7 +178,9 @@ export default function FirmBlocks () {
             </Typography>
             <span> </span>
 
-            <Typography component="span">{block.msgs.length}</Typography>
+            { block.msgs !== undefined &&
+              <Typography component="span">{block.msgs.length}</Typography>
+            }
           </Grid>
         }
 
