@@ -4,6 +4,7 @@ import chains, { init as chainsInit } from './slices/chains.js'
 // import chains from './slices/chains.js'
 import accounts, { loadWallet } from './slices/accounts.js'
 import status, { setStatusAlert } from './slices/status.js'
+import appState from './slices/appState.js'
 import anyToStr from 'firmcore/src/helpers/anyToStr.js'
 import { init as walletsInit } from './wallets.js';
 import fc, { IFirmCore } from 'firmcore';
@@ -16,7 +17,8 @@ export const store = configureStore({
     chains,
     accounts,
     mounts,
-    status
+    status,
+    appState
   }
 })
 

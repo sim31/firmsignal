@@ -3,16 +3,16 @@ import { Button, Grid, Stack, styled, Typography, Tabs, Tab, Box } from '@mui/ma
 import { useAppDispatch, useAppSelector, useCopyCallback, useLatestBlocks } from '../global/hooks.js'
 import { getRouteParam } from '../helpers/routes.js'
 import { setLocation } from '../global/slices/appLocation.js'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { confirmationsText } from '../helpers/confirmationsDisplay.js'
 import { msgTypes } from '../global/messages.js'
 import { blockTagsStr } from '../utils/blockTags.js'
 import { timestampToDateStr } from 'firmcore/src/helpers/date.js'
-import ConfirmDialog from './ConfirmDialog.js'
 import { shortBlockId } from '../helpers/hashDisplay.js'
 import { selectCurrentAccount } from '../global/slices/accounts.js'
-import { confirmBlock, type ConfirmBlockArgs } from '../global/slices/chains.js'
-import { setStatusAlert, unsetAlert } from '../global/slices/status.js'
+import { confirmDialogOpen, syncMounted } from '../global/slices/appState.js'
+import { getUserConfirmMap } from '../helpers/userConfirmations.js'
+import { SyncChainArgs, isFullChain } from '../global/slices/chains.js'
 
 const BlockTabs = styled(Tabs)({
   '& .MuiButtonBase-root': {
@@ -24,7 +24,6 @@ export default function FirmBlocks () {
   const { finalized, proposed, headBlock, routeMatch, chain } = useLatestBlocks()
   const selectedBlockId = getRouteParam(routeMatch, 'block', '')
   const dispatch = useAppDispatch()
-  const [confirmOpen, setConfirmOpen] = useState<boolean>(false)
   const accountAddr = useAppSelector(selectCurrentAccount)
 
   const [block, confirmText] = useMemo(() => {
@@ -38,6 +37,36 @@ export default function FirmBlocks () {
       return [undefined, undefined]
     }
   }, [finalized, proposed, selectedBlockId])
+
+  const userConfirmMap = useMemo(() => {
+    if (accountAddr !== undefined) {
+      return getUserConfirmMap(accountAddr, finalized, proposed)
+    } else {
+      return undefined;
+    }
+  }, [finalized, proposed, accountAddr])
+
+  const displayConfirm = useMemo(() => {
+    if (userConfirmMap !== undefined && block !== undefined) {
+      if (userConfirmMap[block.height] !== undefined) {
+        return false;
+      } else {
+        return true;
+      }
+    } else {
+      return false;
+    }
+  }, [userConfirmMap, block])
+
+  const displaySync = useMemo(() => {
+    if (block !== undefined && isFullChain(chain)) {
+      const syncState = chain.syncState;
+      if (syncState.insyncBlocks <= block.height) {
+        return true;
+      }
+    }
+    return false;
+  }, [block, chain])
 
   const selectBlock = useCallback((tabValue: string) => {
     if (chain !== undefined) {
@@ -61,31 +90,24 @@ export default function FirmBlocks () {
   const handleBlIdCopy = useCopyCallback(dispatch, selectedBlockId)
 
   const onConfirmClick = useCallback(() => {
-    setConfirmOpen(true)
-  }, [])
-
-  const onConfirmAccept = useCallback(async (args: ConfirmBlockArgs) => {
-    // TODO: Show error if not enough information (like threshold not set)
-    setConfirmOpen(false)
-    try {
-      // TODO: Spinner
-      dispatch(setStatusAlert({
-        status: 'info',
-        msg: `Confirming block ${shortBlockId(args.blockId)}`
-      }))
-
-      await dispatch(confirmBlock(args)).unwrap()
-      dispatch(unsetAlert())
-    } catch (err) {
-      console.log(err)
-      const msg = typeof err === 'object' && (err != null) && 'message' in err ? err.message : err
-      dispatch(setStatusAlert({
-        status: 'error',
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        msg: `Failed Confirming a block. Error: ${msg}`
-      }))
+    if (block !== undefined && accountAddr !== undefined && chain !== undefined) {
+      dispatch(confirmDialogOpen({
+        block,
+        confirmerAddress: accountAddr,
+        chainAddr: chain.address
+      }));
     }
-  }, [dispatch])
+  }, [dispatch, block, accountAddr, chain]);
+
+  const onSyncClick = useCallback(() => {
+    if (chain !== undefined && block !== undefined) {
+      const args: SyncChainArgs = {
+        chainAddr: chain.address,
+        toBlock: block.id
+      };
+      void dispatch(syncMounted(args));
+    }
+  }, [dispatch, chain, block]);
 
   function renderLabel (num: number, tags: string, date?: string) {
     return (
@@ -196,28 +218,23 @@ export default function FirmBlocks () {
           </Grid>
         }
 
-        {(block != null) &&
+        { displayConfirm &&
           <Grid item>
             {/* <Button size="large">Browse</Button> */}
             <Button size="large" sx={{ ml: '2em' }} onClick={onConfirmClick}>Confirm</Button>
           </Grid>
         }
 
+        { displaySync &&
+          <Grid item>
+            {/* <Button size="large">Browse</Button> */}
+            <Button size="large" sx={{ ml: '2em' }} onClick={onSyncClick}>Sync</Button>
+          </Grid>
+        }
+
       </Grid>
 
       {renderMessages()}
-
-      {(block != null) && accountAddr !== undefined && (chain !== undefined) &&
-        <ConfirmDialog
-          open={confirmOpen}
-          block={block}
-          confirmerAddress={accountAddr}
-          chainAddr={chain.address}
-          onReject={() => { setConfirmOpen(false) }}
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          onAccept={onConfirmAccept}
-        />
-      }
 
     </>
   )

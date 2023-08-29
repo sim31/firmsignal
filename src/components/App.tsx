@@ -10,6 +10,9 @@ import { useAppSelector, useAppDispatch, useRouteMatcher } from '../global/hooks
 import { rootRouteMatcher } from '../global/routes.js'
 import { selectStatusAlert } from '../global/slices/status.js'
 import { getRouteParam } from '../helpers/routes.js'
+import ConfirmDialog from './ConfirmDialog.js'
+import { selectConfirmDialogArgs } from '../global/slices/appState.js'
+import SwitchMpDialog from './SwitchMpDialog.js'
 
 const theme = createTheme()
 
@@ -58,6 +61,9 @@ function App () {
           : null
         }
         {(Component != null) ? <Component /> : null}
+
+        <ConfirmDialog />
+        <SwitchMpDialog />
       </>
     </ThemeProvider>
   )

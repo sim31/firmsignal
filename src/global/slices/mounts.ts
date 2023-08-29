@@ -1,7 +1,8 @@
-import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import fc, { MountPoint } from 'firmcore'
+import { PayloadAction, createSlice } from '@reduxjs/toolkit'
+import { createAppAsyncThunk as createAsyncThunk } from '../createAsyncThunk.js'
+import fc, { ChainId, MountPoint } from 'firmcore'
 import { waitForInit } from '../initWaiter.js';
-import { RootState } from '../store.js';
+import type { RootState } from '../store.js';
 
 export type MountPointId = string;
 
@@ -39,6 +40,13 @@ export const init = createAsyncThunk(
     fc.onMountPointChanged((mp) => {
       dispatch(chainsSlice.actions.setMountPoint(mp))
     });
+  }
+)
+
+export const mountChain = createAsyncThunk(
+  'mounts/mountChain',
+  async (chainId: ChainId, { dispatch }): Promise<void> => {
+    await fc.mountChain(chainId);
   }
 )
 

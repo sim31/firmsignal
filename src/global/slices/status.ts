@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { type AppThunk, type RootState } from '../store.js'
+import type { AppThunk, RootState } from '../store.js'
 import { type StatusAlert } from '../types.js'
 
 export interface Status {

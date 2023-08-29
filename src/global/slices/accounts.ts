@@ -1,6 +1,7 @@
-import { createAsyncThunk, createSlice, } from '@reduxjs/toolkit'
-import { type RootState } from '../store.js'
-import { type Address } from 'firmcore'
+import { createSlice, } from '@reduxjs/toolkit'
+import { createAppAsyncThunk as createAsyncThunk } from '../createAsyncThunk.js'
+import type { RootState } from '../store.js'
+import type { Address } from 'firmcore'
 import { loadConfirmer } from '../wallets.js'
 
 export interface Accounts {

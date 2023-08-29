@@ -66,4 +66,13 @@ export const msgTypes: Record<MsgTypeName, MsgTypeInfo> = {
     title: 'Update confirmers',
     editComponent: UpdateConfirmersForm
   },
+  setHostChain: {
+    title: 'Set host chain',
+    editComponent: undefined
+  },
+  unknown: {
+    title: 'uknown message',
+    editComponent: undefined
+  }
+
 }

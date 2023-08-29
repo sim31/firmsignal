@@ -4,14 +4,22 @@ import BalancesTable from './BalancesTable.js'
 import BlockCard from './BlockCard.js'
 import ConfirmerTable from './ConfirmerTable.js'
 import StateInfoCard from './StateInfoCard.js'
-import { useAppDispatch, useCopyCallback, useLatestBlocks } from '../global/hooks.js'
+import { useAppDispatch, useAppSelector, useCopyCallback, useLatestBlocks } from '../global/hooks.js'
 import { useMemo } from 'react'
-import firmcore, { type Account, type Address } from 'firmcore'
+import firmcore, { BlockId, type Account, type Address } from 'firmcore'
+import { isFullChain } from '../global/slices/chains.js'
+import { selectCurrentAccount } from '../global/slices/accounts.js'
+import { selectCurrentMountpointId } from '../global/slices/mounts.js'
 
 export default function FirmState () {
   const { chain, headBlock, finalized, proposed } = useLatestBlocks()
 
+  const account = useAppSelector(selectCurrentAccount);
+  const mountpointId = useAppSelector(selectCurrentMountpointId);
+
   const dispatch = useAppDispatch();
+
+  const handleIdCopy = useCopyCallback(dispatch, chain?.address ?? '');
 
   const directoryId = headBlock?.state.directoryId;
   // FIXME:
@@ -20,6 +28,8 @@ export default function FirmState () {
     : undefined;
 
   const hostChainId = headBlock?.state.hostChainId;
+
+  const syncState = isFullChain(chain) ? chain.syncState : undefined;
 
   const confSet = headBlock?.state.confirmerSet
   // TODO: Move to some util or hook
@@ -38,17 +48,27 @@ export default function FirmState () {
     return acc
   }, [headBlock])
 
-  const handleIdCopy = useCopyCallback(dispatch, chain?.address ?? '');
-
   function renderBlockList () {
-    if (chain !== undefined && finalized !== undefined) {
+    if (chain !== undefined && finalized !== undefined && syncState !== undefined) {
       const allBlocks = [...finalized, ...proposed]
       allBlocks.reverse()
+      const accConfirmations: Record<number, BlockId> = {};
       const blockCards = allBlocks.map((bl) => {
+        const confirmation = bl.state.confirmations.find(c => c === account);
+        if (confirmation !== undefined) {
+          accConfirmations[bl.height] = bl.id;
+        }
+        const insync = syncState.insyncBlocks > bl.height;
+        const syncButton = !insync;
+        const confirmButton = accConfirmations[bl.height] === undefined;
         return (
           <Grid item key={bl.id}>
             <BlockCard
               block={bl}
+              chainAddr={chain.address}
+              insync={insync}
+              syncButton={syncButton}
+              confirmButton={confirmButton}
               // TODO: implement block tags
             />
           </Grid>

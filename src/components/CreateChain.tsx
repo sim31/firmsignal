@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react'
 import { useImmer } from 'use-immer'
 import useIncrementingId from '../hooks/useIncrementingId.js'
 import { useAppDispatch } from '../global/hooks.js'
-import { createChain } from '../global/slices/chains.js'
+import { createChain } from '../global/slices/appState.js'
 import { setLocation } from '../global/slices/appLocation.js'
 import { setStatusAlert, unsetAlert } from '../global/slices/status.js'
 import type { AccountWithAddress, EFConstructorArgs } from 'firmcore'
@@ -75,42 +75,22 @@ export default function CreateChain () {
   )
 
   const onSubmit = useCallback(
-    async () => {
-      // TODO: Show error if not enough information (like threshold not set)
-      try {
-        // TODO: Spinner
-        dispatch(setStatusAlert({
-          status: 'info',
-          msg: 'Creating firmchain...',
-        }));
-
-        const confs: AccountWithAddress[] =
-          Object.values(confirmers).map(c => {
-            return {
-              ...c,
-              id: 0,
-              extAccounts: {
-              }
+    () => {
+      const confs: AccountWithAddress[] =
+        Object.values(confirmers).map(c => {
+          return {
+            ...c,
+            id: 0,
+            extAccounts: {
             }
-          });
-        const args: EFConstructorArgs = {
-          confirmers: confs,
-          name,
-          symbol,
-        };
-        const chain = await dispatch(createChain(args)).unwrap();
-        dispatch(unsetAlert());
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        dispatch(setLocation(`/chains/${chain.address}`));
-      } catch (err) {
-        console.log(err);
-        const msg = typeof err === 'object' && err !== null && 'message' in err ? err.message : err;
-        dispatch(setStatusAlert({
-          status: 'error',
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          msg: `Failed creating new chain. Error: ${msg}`
-        }));
-      }
+          }
+        });
+      const args: EFConstructorArgs = {
+        confirmers: confs,
+        name,
+        symbol,
+      };
+      void dispatch(createChain(args));
     },
     [confirmers, dispatch, name, symbol]
   )

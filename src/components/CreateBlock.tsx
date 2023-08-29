@@ -1,6 +1,6 @@
 import { Button, Grid, Stack, Typography } from '@mui/material'
 import { useAppDispatch, useLatestBlocks } from '../global/hooks.js'
-import { createBlock } from '../global/slices/chains.js'
+import { createBlock } from '../global/slices/appState.js'
 import { useCallback, useState } from 'react'
 import React, { type MsgTypeName } from 'firmcore'
 import useIncrementingId from '../hooks/useIncrementingId.js'
@@ -54,45 +54,20 @@ export default function CreateBlock () {
   }, [msgs, setMsgs])
 
   const onSubmit = useCallback(
-    async () => {
-      // FIXME: all of this logic should probably be in thunks
-
-      // TODO: Show error if not enough information (like threshold not set)
-      try {
-        // TODO: Higher order thunk which sets the status message and handles errors
-        // TODO: Spinner
-        dispatch(setStatusAlert({
-          status: 'info',
-          msg: 'Creating a block...'
-        }))
-
-        if (chain === undefined || chain === undefined) {
-          throw new NotFound('Chain not found')
-        }
-
-        const ms = Object.values(msgs).map(m => {
-          if (isValidMsg(m)) {
-            return m
-          } else {
-            throw new Error(m.what)
-          }
-        })
-
-        const args = { chainAddr: chain.address, msgs: ms }
-        await dispatch(createBlock(args)).unwrap()
-        dispatch(unsetAlert())
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        dispatch(setLocation(`/chains/${chain.address}`))
-      } catch (err) {
-        console.log(err)
-        const msg =
-          typeof err === 'object' && (err != null) && 'message' in err && typeof err.message === 'string' ? err.message : err
-        dispatch(setStatusAlert({
-          status: 'error',
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          msg: `Failed creating new block. Error: ${msg}`
-        }))
+    () => {
+      if (chain === undefined || chain === undefined) {
+        throw new NotFound('Chain not found')
       }
+      const ms = Object.values(msgs).map(m => {
+        if (isValidMsg(m)) {
+          return m
+        } else {
+          throw new Error(m.what)
+        }
+      })
+      const args = { chainAddr: chain.address, msgs: ms }
+
+      void dispatch(createBlock(args));
     }, [msgs, dispatch, chain])
 
   function renderMessages () {

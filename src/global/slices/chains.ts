@@ -1,8 +1,9 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { type RootState } from '../store.js'
+import { createSlice } from '@reduxjs/toolkit'
+import { createAppAsyncThunk as createAsyncThunk } from '../createAsyncThunk.js'
+import type { RootState } from '../store.js'
 // import { type WritableDraft } from 'immer/dist/types/types-external.js'
 import { ProgrammingError } from 'firmcore/src/exceptions/ProgrammingError.js'
-import firmcore, { type Address, type EFConstructorArgs, type EFMsg, type EFBlockPOD, type BlockId, type EFChainState, EFChain, MNormEFChainPOD } from 'firmcore'
+import firmcore, { type Address, type EFConstructorArgs, type EFMsg, type EFBlockPOD, type BlockId, type EFChainState, EFChain, MNormEFChainPOD, SyncOptions } from 'firmcore'
 import { InvalidArgument } from 'firmcore/src/exceptions/InvalidArgument.js'
 import { NotFound } from 'firmcore/src/exceptions/NotFound.js'
 import { waitForInit } from '../initWaiter.js'
@@ -105,7 +106,7 @@ export const createBlock = createAsyncThunk(
   async (args: EFCreateBlockArgs, { getState }): Promise<{ args: EFCreateBlockArgs, block: EFBlockPOD }> => {
     await waitForInit();
 
-    const state = getState() as RootState
+    const state = getState();
     const chain = selectChain(state, args.chainAddr)
     const headBl = selectHead(state, args.chainAddr)
     if ((chain === undefined) || (headBl == null)) {
@@ -168,6 +169,25 @@ export const confirmBlock = createAsyncThunk(
 
     const chainAddress = args.chainAddress
     await dispatch(updateChain({ chainAddress }))
+  }
+)
+
+export interface SyncChainArgs {
+  chainAddr: Address
+  toBlock: BlockId
+  syncOptions?: SyncOptions
+}
+
+export const syncMounted = createAsyncThunk(
+  'chains/syncMounted',
+  async (args: SyncChainArgs, { dispatch }): Promise<void> => {
+    const { fc } = await waitForInit();
+    const chain = await fc.getChain(args.chainAddr);
+    if (chain === undefined) {
+      throw new InvalidArgument('Trying to sync unknown chain');
+    }
+    await chain.sync(args.toBlock, args.syncOptions);
+    await dispatch(updateChain({ chainAddress: args.chainAddr }));
   }
 )
 
