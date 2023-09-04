@@ -12,7 +12,7 @@ import { selectCurrentAccount } from '../global/slices/accounts.js'
 import { selectCurrentMountpointId } from '../global/slices/mounts.js'
 
 export default function FirmState () {
-  const { chain, headBlock, finalized, proposed } = useLatestBlocks()
+  const { chain, headBlock, finalized, proposed } = useLatestBlocks(4);
 
   const account = useAppSelector(selectCurrentAccount);
   const mountpointId = useAppSelector(selectCurrentMountpointId);
@@ -59,8 +59,8 @@ export default function FirmState () {
           accConfirmations[bl.height] = bl.id;
         }
         const insync = syncState.insyncBlocks > bl.height;
-        const syncButton = !insync;
-        const confirmButton = accConfirmations[bl.height] === undefined;
+        const syncButton = !insync && bl.state.confirmationStatus.final;
+        const confirmButton = accConfirmations[bl.height] === undefined && bl.height !== 0;
         return (
           <Grid item key={bl.id}>
             <BlockCard

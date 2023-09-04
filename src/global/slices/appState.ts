@@ -71,7 +71,7 @@ export const handleUnknownError =
   (err: UnknownError): AppThunk =>
     (dispatch) => {
       console.log(err)
-      const msg = typeof err === 'object' && (err != null) && 'message' in err ? err.message : err
+      const msg = JSON.stringify(err.err);
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       const fullErrMsg = `${err.contextStr}. Error: ${msg}`;
       dispatch(setStatusAlert({
@@ -202,7 +202,7 @@ export const syncMounted = createAsyncThunk(
         msg: 'Sync successful!'
       }))
     } catch (err) {
-      dispatch(handleUnknownError({ contextStr: 'Error confirming', err }));
+      dispatch(handleUnknownError({ contextStr: 'Error syncing', err }));
     }
   }
 )

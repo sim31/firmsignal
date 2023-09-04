@@ -46,8 +46,8 @@ async function initFc(): Promise<IFirmCore> {
 
     await walletsInit();
     await store.dispatch(loadWallet()).unwrap();
-    store.dispatch(setStatusAlert({ status: 'none' }))
     await store.dispatch(chainsInit()).unwrap();
+    store.dispatch(setStatusAlert({ status: 'none' }))
     return fc;
   } catch (err: any) {
     const errStr = anyToStr(err);

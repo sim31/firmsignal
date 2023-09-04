@@ -31,7 +31,7 @@ export function useCurrentChainRoute () {
 }
 
 // TODO: use maxBlocks argument
-export function useLatestBlocks (maxBlocks: number = 6) {
+export function useLatestBlocks (maxBlocks?: number) {
   const { chain, routeMatch } = useCurrentChainRoute()
   if (chain === undefined || !isFullChain(chain)) {
     return {
@@ -49,9 +49,28 @@ export function useLatestBlocks (maxBlocks: number = 6) {
   assert(
     (headBlock == null) || headBlock.tags[0] === 'consensus' || headBlock.tags[0] === 'genesis',
     'Tag of the head block has to be consensus or genesis'
-  )
+  );
 
-  return { chain, routeMatch, finalized, proposed, headBlock }
+  let propCount: number;
+  let finalCount: number;
+  if (maxBlocks !== undefined) {
+    propCount = Math.min(proposed.length, maxBlocks - 1);
+    finalCount = Math.min(finalized.length, maxBlocks - propCount);
+  } else {
+    propCount = proposed.length;
+    finalCount = finalized.length;
+  }
+
+  const rFinalized = finalized.slice(-finalCount);
+  const rProposed = proposed.slice(-propCount);
+
+  return {
+    chain,
+    routeMatch,
+    finalized: rFinalized,
+    proposed: rProposed,
+    headBlock
+  };
 }
 
 export function useCopyCallback (dispatch: ReturnType<typeof useAppDispatch>, value: any) {

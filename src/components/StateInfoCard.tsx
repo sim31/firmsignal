@@ -11,9 +11,9 @@ export default function StateInfoCard (props: StateInfoCardProps) {
     <InfoCard {...otherProps}>
       {children}
 
-      <CardActions>
+      {/* <CardActions>
         <Button>Propose modifications</Button>
-      </CardActions>
+      </CardActions> */}
     </InfoCard>
   )
 }

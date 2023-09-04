@@ -48,7 +48,7 @@ export default function FirmBlocks () {
 
   const displayConfirm = useMemo(() => {
     if (userConfirmMap !== undefined && block !== undefined) {
-      if (userConfirmMap[block.height] !== undefined) {
+      if (userConfirmMap[block.height] !== undefined || block.height === 0) {
         return false;
       } else {
         return true;
@@ -61,7 +61,7 @@ export default function FirmBlocks () {
   const displaySync = useMemo(() => {
     if (block !== undefined && isFullChain(chain)) {
       const syncState = chain.syncState;
-      if (syncState.insyncBlocks <= block.height) {
+      if (syncState.insyncBlocks <= block.height && block.state.confirmationStatus.final) {
         return true;
       }
     }
@@ -109,15 +109,17 @@ export default function FirmBlocks () {
     }
   }, [dispatch, chain, block]);
 
-  function renderLabel (num: number, tags: string, date?: string) {
+  function renderLabel (num: number, tags: string, insync: boolean, date?: string) {
+    const primaryColor = insync ? 'text.primary' : '#c2c2c2'
+    const secondaryColor = insync ? 'text.secondary' : '#c2c2c2';
     return (
       <>
-        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+        <Typography sx={{ fontSize: 14 }} color={secondaryColor} gutterBottom>
           {`#${num} `}
           {tags}
         </Typography>
         {date !== undefined &&
-          <Typography variant="h5" component="div">
+          <Typography variant="h5" component="div" color={primaryColor}>
             {date}
           </Typography>
         }
@@ -129,10 +131,16 @@ export default function FirmBlocks () {
     return [...finalized, ...proposed].reverse().map((bl) => {
       const tagStr = blockTagsStr(bl.tags)
       const date = bl.timestamp !== undefined ? timestampToDateStr(bl.timestamp) : undefined;
+      let insync: boolean = false;
+      if (isFullChain(chain)) {
+        if (chain.syncState.insyncBlocks > bl.height) {
+          insync = true;
+        }
+      }
       return (
         <Tab
           key={bl.id}
-          label={renderLabel(bl.height, tagStr, date)}
+          label={renderLabel(bl.height, tagStr, insync, date)}
           value={bl.id}
         />
       )
