@@ -4,7 +4,7 @@ import chains, { init as chainsInit } from './slices/chains.js'
 // import chains from './slices/chains.js'
 import accounts, { loadWallet } from './slices/accounts.js'
 import status, { setStatusAlert } from './slices/status.js'
-import appState from './slices/appState.js'
+import appState, { handleUnknownError } from './slices/appState.js'
 import anyToStr from 'firmcore/src/helpers/anyToStr.js'
 import { init as walletsInit } from './wallets.js';
 import fc, { IFirmCore } from 'firmcore';
@@ -50,15 +50,13 @@ async function initFc(): Promise<IFirmCore> {
     store.dispatch(setStatusAlert({ status: 'none' }))
     return fc;
   } catch (err: any) {
-    const errStr = anyToStr(err);
     // TODO: why does it complain
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    const str = `Failed initializing firmcore: ${errStr}`;
-    console.error(str);
-    store.dispatch(setStatusAlert({
-      status: 'error',
-      msg: str
+    store.dispatch(handleUnknownError({
+      contextStr: 'Failed initializing firmcore',
+      err
     }));
+
     throw err;
   }
 }

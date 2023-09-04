@@ -96,6 +96,8 @@ export default function FirmBar () {
       return chainId
     } else if (routeMatch.value.name === 'ImportChain') {
       return 'importChain'
+    } else if (routeMatch.value.name === 'SelectChain') {
+      return 'selectChain';
     } else {
       return ''
     }
@@ -103,7 +105,7 @@ export default function FirmBar () {
 
   const handleSelectChain = useCallback((e: SelectChangeEvent<unknown>) => {
     const val = e.target.value as string
-    if (val === 'newChain' || val === 'importChain') {
+    if (val === 'newChain' || val === 'importChain' || val === 'selectChain') {
       dispatch(setLocation(val));
     } else {
       dispatch(setLocation(`/chains/${val}`));
@@ -120,11 +122,7 @@ export default function FirmBar () {
       )
     })
 
-    items.push((
-      <MenuItem value="newChain" key="new">New Chain</MenuItem>
-    ))
-
-    return items
+    return items;
   }
 
   function renderChainSelection (value: unknown) {
@@ -132,7 +130,7 @@ export default function FirmBar () {
     let text = ''
     if (value === 'newChain') {
       text = 'New Chain'
-    } else if (value === undefined || value === '') {
+    } else if (value === undefined || value === '' || value === 'Select Chain') {
       text = 'Select Chain'
     // } else if (value === 'importChain') {
     //   text = 'Import Chain'
@@ -168,9 +166,8 @@ export default function FirmBar () {
             renderValue={renderChainSelection}
             displayEmpty
           >
-            <MenuItem disabled value="">
-              Select Chain
-            </MenuItem>
+            <MenuItem value="selectChain" key="selectChain">Select Chain</MenuItem>
+            <MenuItem value="newChain" key="newChain">New Chain</MenuItem>
             {renderMenuItems()}
           </StyledSelect>
 

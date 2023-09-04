@@ -3,7 +3,8 @@ import * as React from 'react'
 import { useAppDispatch, useAppSelector, useRouteMatcher } from '../global/hooks.js'
 import { chainRouteMatcher, rootRouteMatcher } from '../global/routes.js'
 import { setLocation } from '../global/slices/appLocation.js'
-import { selectChain, selectFocusChain, setFocusChain } from '../global/slices/chains.js'
+import { selectChain, selectFocusChain } from '../global/slices/chains.js'
+import { setFocusChain } from '../global/slices/appState.js'
 import NotFoundError from './Errors/NotFoundError.js'
 import { useEffect } from 'react'
 import { getRouteParam } from '../helpers/routes.js'
@@ -25,29 +26,8 @@ export default function FirmChain () {
   }, [address, dispatch]);
 
   useEffect(() => {
-    async function setFocus() {
-      try {
-        // TODO: Spinner
-        dispatch(setStatusAlert({
-          status: 'info',
-          msg: 'Loading firmchain...',
-        }));
-
-        await dispatch(setFocusChain(address)).unwrap();
-        dispatch(unsetAlert());
-      } catch (err) {
-        console.log(err);
-        const msg = typeof err === 'object' && err !== null && 'message' in err ? err.message : err;
-        dispatch(setStatusAlert({
-          status: 'error',
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          msg: `Failed creating new chain. Error: ${msg}`
-        }));
-      }
-    }
-
     if (focusChain?.address !== address) {
-      void setFocus();
+      void dispatch(setFocusChain(address));
     }
   }, [dispatch, address, focusChain])
 

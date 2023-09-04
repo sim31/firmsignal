@@ -1,7 +1,14 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import { createAppAsyncThunk as createAsyncThunk } from '../createAsyncThunk.js';
 import type { AppThunk, RootState } from '../store.js'
-import { confirmBlock as chainConfirm, createBlock as chainCreateBlock, EFCreateBlockArgs, createChain as chainCreateChain, syncMounted as chainSyncMounted, selectChainState, ConfirmBlockArgs, SyncChainArgs } from './chains.js'
+import {
+  confirmBlock as chainConfirm,
+  createBlock as chainCreateBlock,
+  EFCreateBlockArgs, createChain as chainCreateChain,
+  syncMounted as chainSyncMounted,
+  selectChainState, ConfirmBlockArgs, SyncChainArgs,
+  setFocusChain as chSetFocusChain,
+} from './chains.js'
 import { waitForInit } from '../initWaiter.js'
 import { setStatusAlert, setTimedAlert, unsetAlert } from './status.js'
 import { shortBlockId } from '../../helpers/hashDisplay.js'
@@ -146,6 +153,27 @@ export const createBlock = createAsyncThunk(
     }
   }
 )
+
+export const setFocusChain = createAsyncThunk(
+  'appState/setFocusChain',
+  async (address: Address, { dispatch, getState }): Promise<void> => {
+    try {
+      // TODO: Spinner
+      dispatch(setStatusAlert({
+        status: 'info',
+        msg: 'Loading firmchain...',
+      }));
+
+      await dispatch(chSetFocusChain(address)).unwrap();
+      dispatch(unsetAlert());
+    } catch (err) {
+      dispatch(handleUnknownError({
+        contextStr: 'Failed loading a chain',
+        err
+      }));
+    }
+  }
+);
 
 export const createChain = createAsyncThunk(
   'appState/createChain',

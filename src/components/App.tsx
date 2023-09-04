@@ -30,7 +30,7 @@ function App () {
     if (initStatus === 'ready') {
       if (routeMatch.value == null) {
         if (focusChain == null) {
-          dispatch(setLocation('/newChain'))
+          dispatch(setLocation('/selectChain'))
         } else {
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           dispatch(setLocation(`/chains/${focusChain.address}`))
