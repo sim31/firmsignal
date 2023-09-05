@@ -29,6 +29,7 @@ export interface SwitchMpDialogArgs {
 }
 
 export interface AppState {
+  loadingChain?: Address
   confirmDialog: {
     open?: false
   } | {
@@ -66,7 +67,20 @@ export const appStateSlice = createSlice({
     setSwitchMpDialogClose: (state) => {
       state.switchMpDialog = { open: false };
     }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(setFocusChain.pending, (state, action) => {
+        state.loadingChain = action.meta.arg;
+      })
+      .addCase(setFocusChain.fulfilled, (state, action) => {
+        state.loadingChain = undefined;
+      })
+      .addCase(setFocusChain.rejected, (state, action) => {
+        state.loadingChain = undefined;
+      })
   }
+
 })
 
 interface UnknownError {
@@ -266,6 +280,10 @@ export const selectCurrentMpMatch = (state: RootState, chainAddr: Address): Matc
     isMatch: hostChainId === mp?.chainId,
     hostChainId
   }
+}
+
+export const selectLoadingChain = (state: RootState): Address | undefined => {
+  return state.appState.loadingChain;
 }
 
 export default appStateSlice.reducer;

@@ -4,12 +4,13 @@ import { useAppDispatch, useAppSelector, useRouteMatcher } from '../global/hooks
 import { chainRouteMatcher, rootRouteMatcher } from '../global/routes.js'
 import { setLocation } from '../global/slices/appLocation.js'
 import { selectChain, selectFocusChain } from '../global/slices/chains.js'
-import { setFocusChain } from '../global/slices/appState.js'
+import { selectLoadingChain, setFocusChain } from '../global/slices/appState.js'
 import NotFoundError from './Errors/NotFoundError.js'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { getRouteParam } from '../helpers/routes.js'
 import { shortAddress } from '../helpers/hashDisplay.js'
 import { setStatusAlert, unsetAlert } from '../global/slices/status.js'
+import { Address } from 'firmcore'
 // import ShareIcon from '@mui/icons-material/Share';
 
 export default function FirmChain () {
@@ -19,17 +20,24 @@ export default function FirmChain () {
   const address = getRouteParam(routeMatch, 'chainId', '')
   const chain = useAppSelector(state => selectChain(state, address))
   const focusChain = useAppSelector(selectFocusChain);
+  const loadingChain = useAppSelector(selectLoadingChain);
   const dispatch = useAppDispatch()
 
   const setTab = React.useCallback((tabValue: string) => {
     dispatch(setLocation(`/chains/${address}/${tabValue}`))
   }, [address, dispatch]);
 
+  // For some reason, effect is sometimes called twice during a single re-render
+  // Most likely, because of strict mode: https://react.dev/reference/react/StrictMode#enabling-strict-mode-for-entire-app
+  // Using this "called" flag to prevent multiple dispatches
+  let called: boolean = false;
   useEffect(() => {
-    if (focusChain?.address !== address) {
+    if (!called && focusChain?.address !== address && loadingChain !== address) {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      called = true;
       void dispatch(setFocusChain(address));
     }
-  }, [dispatch, address, focusChain])
+  }, [dispatch, address, focusChain, loadingChain])
 
   useEffect(() => {
     if (tabValue.length === 0) {
@@ -44,7 +52,11 @@ export default function FirmChain () {
   const Component = routeMatch.value
 
   if (chain == null) {
-    return <NotFoundError />
+    if (loadingChain !== address) {
+      return <NotFoundError />
+    } else {
+      <></>
+    }
   } else if (chain.address !== focusChain?.address) {
     return <></>
   } else {

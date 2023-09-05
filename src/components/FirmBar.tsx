@@ -130,7 +130,7 @@ export default function FirmBar () {
     let text = ''
     if (value === 'newChain') {
       text = 'New Chain'
-    } else if (value === undefined || value === '' || value === 'Select Chain') {
+    } else if (value === undefined || value === '' || value === 'selectChain') {
       text = 'Select Chain'
     // } else if (value === 'importChain') {
     //   text = 'Import Chain'
