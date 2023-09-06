@@ -29,7 +29,7 @@ export interface SwitchMpDialogArgs {
 }
 
 export interface AppState {
-  loadingChain?: Address
+  lastLoadedChain?: Address
   confirmDialog: {
     open?: false
   } | {
@@ -71,13 +71,7 @@ export const appStateSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(setFocusChain.pending, (state, action) => {
-        state.loadingChain = action.meta.arg;
-      })
-      .addCase(setFocusChain.fulfilled, (state, action) => {
-        state.loadingChain = undefined;
-      })
-      .addCase(setFocusChain.rejected, (state, action) => {
-        state.loadingChain = undefined;
+        state.lastLoadedChain = action.meta.arg;
       })
   }
 
@@ -92,9 +86,9 @@ export const handleUnknownError =
   (err: UnknownError): AppThunk =>
     (dispatch) => {
       console.log(err)
-      const msg = JSON.stringify(err.err);
+      const msg = typeof err.err === 'object' ? JSON.stringify(err.err) : err.err;
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      const fullErrMsg = `${err.contextStr}. Error: ${msg}`;
+      const fullErrMsg = `${err.contextStr}. Error: ${msg !== '{}' ? msg : err.err}`;
       dispatch(setStatusAlert({
         status: 'error',
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -282,8 +276,8 @@ export const selectCurrentMpMatch = (state: RootState, chainAddr: Address): Matc
   }
 }
 
-export const selectLoadingChain = (state: RootState): Address | undefined => {
-  return state.appState.loadingChain;
+export const selectLastLoadedChain = (state: RootState): Address | undefined => {
+  return state.appState.lastLoadedChain;
 }
 
 export default appStateSlice.reducer;

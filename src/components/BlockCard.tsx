@@ -13,6 +13,7 @@ import { selectCurrentAccount } from '../global/slices/accounts.js'
 import { confirmDialogOpen, syncMounted } from '../global/slices/appState.js'
 import { Address } from 'firmcore'
 import { SyncChainArgs } from '../global/slices/chains.js'
+import { setLocation } from '../global/slices/appLocation.js'
 
 export interface BlockCardProps {
   block: TaggedBlock
@@ -62,6 +63,13 @@ export default function BlockCard ({ block, insync, syncButton, confirmButton, c
         toBlock: block.id
       };
       void dispatch(syncMounted(args));
+    },
+    [dispatch, chainAddr, block],
+  );
+
+  const handleShowClick = useCallback(
+    () => {
+      dispatch(setLocation(`/chains/${chainAddr}/blocks/${block.id}`));
     },
     [dispatch, chainAddr, block],
   );
@@ -118,7 +126,7 @@ export default function BlockCard ({ block, insync, syncButton, confirmButton, c
               Messages: {block.msgs.length}
             </Typography>
           }
-          <Button size='small' sx={{ padding: 0 }}>
+          <Button size='small' sx={{ padding: 0 }} onClick={handleShowClick}>
             Show
           </Button>
         </Stack>

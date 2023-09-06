@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector, useRouteMatcher } from '../global/hooks
 import { chainRouteMatcher, rootRouteMatcher } from '../global/routes.js'
 import { setLocation } from '../global/slices/appLocation.js'
 import { selectChain, selectFocusChain } from '../global/slices/chains.js'
-import { selectLoadingChain, setFocusChain } from '../global/slices/appState.js'
+import { selectLastLoadedChain, setFocusChain } from '../global/slices/appState.js'
 import NotFoundError from './Errors/NotFoundError.js'
 import { useEffect, useState } from 'react'
 import { getRouteParam } from '../helpers/routes.js'
@@ -20,7 +20,7 @@ export default function FirmChain () {
   const address = getRouteParam(routeMatch, 'chainId', '')
   const chain = useAppSelector(state => selectChain(state, address))
   const focusChain = useAppSelector(selectFocusChain);
-  const loadingChain = useAppSelector(selectLoadingChain);
+  const loadingChain = useAppSelector(selectLastLoadedChain);
   const dispatch = useAppDispatch()
 
   const setTab = React.useCallback((tabValue: string) => {

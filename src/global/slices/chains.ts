@@ -54,7 +54,7 @@ export const init = createAsyncThunk(
     let focusChainAddr: Address | undefined;
     let firstCh: EFChain | undefined;
     for (const addr of chainAddrs) {
-      const ch = await fc.getChain(addr);
+      const ch = await fc.getChain(addr, true);
       if (ch === undefined) {
         throw new Error('chain returned by lsChains, but not by getChain');
       }
@@ -67,13 +67,13 @@ export const init = createAsyncThunk(
         firstCh = ch;
       }
     }
-    if (firstCh !== undefined) {
-      const pod = await firstCh.getNormPODChain();
-      if (pod !== undefined) {
-        byAddress[firstCh.address] = pod;
-        focusChainAddr = firstCh.address;
-      }
-    }
+    // if (firstCh !== undefined) {
+    //   const pod = await firstCh.getNormPODChain();
+    //   if (pod !== undefined) {
+    //     byAddress[firstCh.address] = pod;
+    //     focusChainAddr = firstCh.address;
+    //   }
+    // }
     return { byAddress, focusChainAddr, status: 'ready' };
   }
 )

@@ -24,12 +24,19 @@ export const statusSlice = createSlice({
       state.alert = action.payload
     },
     unsetAlert (state) {
-      state.alert.status = 'none'
+      state.alert = {
+        status: 'none',
+      }
+    },
+    unsetSpecificAlert(state, action: PayloadAction<string>) {
+      if (state.alert.status !== 'none' && state.alert.msg === action.payload) {
+        state.alert = { status: 'none' }
+      }
     }
   }
 })
 
-export const { setStatusAlert, unsetAlert } = statusSlice.actions
+export const { setStatusAlert, unsetAlert, unsetSpecificAlert } = statusSlice.actions
 
 export const selectStatusAlert = (state: RootState): StatusAlert => state.status.alert
 const selectAlertNum = (state: RootState): number => state.status.alertNum

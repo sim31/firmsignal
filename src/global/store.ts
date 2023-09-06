@@ -3,7 +3,7 @@ import appLocation, { setLocation } from './slices/appLocation.js'
 import chains, { init as chainsInit } from './slices/chains.js'
 // import chains from './slices/chains.js'
 import accounts, { loadWallet } from './slices/accounts.js'
-import status, { setStatusAlert } from './slices/status.js'
+import status, { setStatusAlert, unsetSpecificAlert } from './slices/status.js'
 import appState, { handleUnknownError } from './slices/appState.js'
 import anyToStr from 'firmcore/src/helpers/anyToStr.js'
 import { init as walletsInit } from './wallets.js';
@@ -26,17 +26,19 @@ async function initFc(): Promise<IFirmCore> {
   try {
     await store.dispatch(mountsInit()).unwrap();
 
+    let msg = 'Loading... (you may have to login through metamask)'
     store.dispatch(setStatusAlert({
       status: 'info',
-      msg: 'Loading... (you may have to login through metamask)'
+      msg,
     }))
     try {
       await fc.init(undefined, true);
     } catch (err: unknown) {
       if (err instanceof DependencyMissing) {
+        msg = 'Have to deploy dependencies. Sign deployement transactions with Metamask to continue...';
         store.dispatch(setStatusAlert({
           status: 'info',
-          msg: 'Have to deploy dependencies. Sign deployement transactions with Metamask to continue...'
+          msg
         }));
         await fc.init();
       } else {
@@ -47,7 +49,7 @@ async function initFc(): Promise<IFirmCore> {
     await walletsInit();
     await store.dispatch(loadWallet()).unwrap();
     await store.dispatch(chainsInit()).unwrap();
-    store.dispatch(setStatusAlert({ status: 'none' }))
+    store.dispatch(unsetSpecificAlert(msg));
     return fc;
   } catch (err: any) {
     // TODO: why does it complain
