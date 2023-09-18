@@ -117,9 +117,9 @@ export default function FirmState () {
           {
             ((confSet?.confirmers) != null)
               ? <ConfirmerTable
-              confirmers={Object.values(confSet.confirmers)}
-              accounts={accounts}
-            />
+                  confirmers={Object.values(confSet.confirmers)}
+                  accounts={accounts}
+                />
               : '-'
           }
         </StateInfoCard>

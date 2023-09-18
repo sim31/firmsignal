@@ -68,7 +68,7 @@ export default function SelectChain () {
     >
       <Grid item xs={12} lg={10}>
         <Stack direction='row' spacing='1em'>
-          <TextField label="Address" variant="outlined" value={addrInput} onChange={onAddrChange} fullWidth/>
+          <TextField label="Address" variant="outlined" value={addrInput} onChange={onAddrChange} sx={{ width: '32em' }}/>
           <Button onClick={onSearchClick}>Select</Button>
         </Stack>
       </Grid>
